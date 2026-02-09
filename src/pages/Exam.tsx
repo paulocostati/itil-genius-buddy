@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, Flag, Clock, CheckCircle } from 'lucide-react';
+import ExamIntro from '@/components/ExamIntro';
 
 interface ExamQuestion {
   id: string;
@@ -17,6 +18,7 @@ interface ExamQuestion {
     option_b: string;
     option_c: string;
     option_d: string;
+    question_type: string;
     topics: {
       name: string;
     };
@@ -31,28 +33,48 @@ export default function Exam() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [startTime] = useState(Date.now());
+  const [started, setStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60 * 60); // 60 minutes in seconds
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     loadExam();
   }, [examId]);
 
+  // Countdown timer
+  useEffect(() => {
+    if (!started) return;
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          finishExam();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [started]);
+
   async function loadExam() {
     const { data } = await supabase
       .from('exam_questions')
-      .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d, topics(name))')
+      .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d, question_type, topics(name))')
       .eq('exam_id', examId!)
       .order('question_order');
 
     if (data) {
       const qs = data as unknown as ExamQuestion[];
       setQuestions(qs);
-      // Restore previous answers
       const restored: Record<string, string> = {};
       for (const q of qs) {
         if (q.selected_option) restored[q.id] = q.selected_option;
       }
-      setAnswers(restored);
+      if (Object.keys(restored).length > 0) {
+        setAnswers(restored);
+        setStarted(true); // Resume if already started
+      }
     }
     setLoading(false);
   }
@@ -63,8 +85,8 @@ export default function Exam() {
 
   async function finishExam() {
     setSubmitting(true);
+    if (timerRef.current) clearInterval(timerRef.current);
 
-    // First get correct answers
     const questionIds = questions.map(q => q.question_id);
     const { data: correctData } = await supabase
       .from('questions')
@@ -78,7 +100,6 @@ export default function Exam() {
       }
     }
 
-    // Update each answer
     let score = 0;
     for (const q of questions) {
       const selected = answers[q.id] || null;
@@ -92,7 +113,6 @@ export default function Exam() {
         .eq('id', q.id);
     }
 
-    // Update exam
     await supabase
       .from('exams')
       .update({ completed: true, score, finished_at: new Date().toISOString() })
@@ -102,6 +122,11 @@ export default function Exam() {
   }
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+
+  // Show intro screen before starting
+  if (!started && Object.keys(answers).length === 0) {
+    return <ExamIntro totalQuestions={questions.length} onStart={() => setStarted(true)} />;
+  }
 
   const current = questions[currentIndex];
   const currentTopicName = current?.questions?.topics?.name || '';
@@ -117,7 +142,19 @@ export default function Exam() {
     { key: 'D', label: 'D', text: current.questions.option_d },
   ];
 
-  const elapsed = Math.floor((Date.now() - startTime) / 60000);
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const timeWarning = timeLeft <= 300; // 5 min warning
+  const timeCritical = timeLeft <= 60; // 1 min critical
+
+  const questionType = current.questions.question_type || 'standard';
+  const typeBadge: Record<string, { label: string; color: string }> = {
+    standard: { label: 'STD', color: 'bg-primary/15 text-primary' },
+    list: { label: 'LIST', color: 'bg-accent/15 text-accent' },
+    missing_word: { label: 'MW', color: 'bg-warning/15 text-warning' },
+    negative: { label: 'NEG', color: 'bg-destructive/15 text-destructive' },
+  };
+  const badge = typeBadge[questionType] || typeBadge.standard;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -130,9 +167,13 @@ export default function Exam() {
             <span className="text-sm text-muted-foreground">de {questions.length}</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <div className={`flex items-center gap-1.5 text-sm font-mono font-bold px-3 py-1 rounded-lg ${
+              timeCritical ? 'bg-destructive/15 text-destructive animate-pulse' :
+              timeWarning ? 'bg-warning/15 text-warning' :
+              'bg-muted text-muted-foreground'
+            }`}>
               <Clock className="h-4 w-4" />
-              <span>{elapsed} min</span>
+              <span>{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}</span>
             </div>
             <div className="flex items-center gap-1 text-sm">
               <CheckCircle className="h-4 w-4 text-success" />
@@ -171,6 +212,11 @@ export default function Exam() {
         )}
         <Card className="border-0 shadow-lg animate-fade-in" key={current.id}>
           <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${badge.color}`}>
+                {badge.label}
+              </span>
+            </div>
             <p className="text-base leading-relaxed font-medium mb-6">{current.questions.statement}</p>
             <div className="space-y-3">
               {options.map(opt => {
