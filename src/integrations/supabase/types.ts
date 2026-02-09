@@ -169,6 +169,7 @@ export type Database = {
       topics: {
         Row: {
           area: string
+          blooms_level: string
           created_at: string
           description: string | null
           id: string
@@ -177,6 +178,7 @@ export type Database = {
         }
         Insert: {
           area: string
+          blooms_level?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -185,6 +187,7 @@ export type Database = {
         }
         Update: {
           area?: string
+          blooms_level?: string
           created_at?: string
           description?: string | null
           id?: string
