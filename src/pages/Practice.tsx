@@ -11,6 +11,7 @@ interface TopicInfo {
   area: string;
   weight: number;
   questionCount: number;
+  bloomsLevel: string;
 }
 
 interface PracticeQuestion {
@@ -46,7 +47,7 @@ export default function Practice() {
   }, [topicId]);
 
   async function loadTopics() {
-    const { data: topicsData } = await supabase.from('topics').select('id, name, area, weight');
+    const { data: topicsData } = await supabase.from('topics').select('id, name, area, weight, blooms_level');
     const { data: questionsData } = await supabase.from('questions').select('id, topic_id');
 
     if (topicsData && questionsData) {
@@ -56,7 +57,7 @@ export default function Practice() {
       }
       const grouped: Record<string, TopicInfo[]> = {};
       for (const t of topicsData as any[]) {
-        const info: TopicInfo = { id: t.id, name: t.name, area: t.area, weight: Number(t.weight), questionCount: countMap.get(t.id) || 0 };
+        const info: TopicInfo = { id: t.id, name: t.name, area: t.area, weight: Number(t.weight), questionCount: countMap.get(t.id) || 0, bloomsLevel: t.blooms_level || 'BL2' };
         if (!grouped[t.area]) grouped[t.area] = [];
         grouped[t.area].push(info);
       }
@@ -173,9 +174,16 @@ export default function Practice() {
                         <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
                           {t.name}
                         </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {t.questionCount} questões
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                            t.bloomsLevel === 'BL1' ? 'bg-warning/15 text-warning' : 'bg-accent/15 text-accent'
+                          }`}>
+                            {t.bloomsLevel}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {t.questionCount} questões
+                          </span>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
