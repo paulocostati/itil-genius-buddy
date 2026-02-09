@@ -105,14 +105,34 @@ export default function Practice() {
 
   // Topic selection view
   if (!topicId) {
-    // Determine difficulty/level badges based on weight
-    const getBadges = (weight: number): { label: string; color: string }[] => {
-      const difficulty = weight >= 0.12 ? { label: 'ALTO', color: 'bg-destructive/15 text-destructive' }
-        : weight >= 0.05 ? { label: 'MED', color: 'bg-primary/15 text-primary' }
-        : { label: 'BAIXO', color: 'bg-success/15 text-success' };
-      const level = weight >= 0.10 ? { label: 'NB2', color: 'bg-accent/15 text-accent' }
-        : { label: 'NB1', color: 'bg-primary/15 text-primary' };
-      return [difficulty, level];
+    // Group topics by area (learning outcome)
+    const areas = [...new Set(topics.map(t => t.area))].sort();
+
+    // Marks per learning outcome (from official syllabus)
+    const marksMap: Record<string, number> = {
+      '1. Conceitos-chave': 5,
+      '2. Princípios Orientadores': 6,
+      '3. Quatro Dimensões': 2,
+      '4. Sistema de Valor (SVS)': 1,
+      '5. Cadeia de Valor': 2,
+      '6. Propósito das Práticas': 7,
+      '7. Entender 7 Práticas ITIL': 17,
+    };
+
+    const bloomsMap: Record<string, string> = {
+      '1. Conceitos-chave': 'BL2',
+      '2. Princípios Orientadores': 'BL2',
+      '3. Quatro Dimensões': 'BL2',
+      '4. Sistema de Valor (SVS)': 'BL2',
+      '5. Cadeia de Valor': 'BL2',
+      '6. Propósito das Práticas': 'BL1',
+      '7. Entender 7 Práticas ITIL': 'BL2',
+    };
+
+    const getDiffBadge = (marks: number) => {
+      if (marks >= 10) return { label: 'ALTO', color: 'bg-destructive/15 text-destructive' };
+      if (marks >= 5) return { label: 'MED', color: 'bg-primary/15 text-primary' };
+      return { label: 'MED', color: 'bg-primary/15 text-primary' };
     };
 
     return (
@@ -126,33 +146,43 @@ export default function Practice() {
             <p className="text-sm opacity-80 mt-1">Escolha um tópico para praticar questões específicas</p>
           </div>
         </div>
-        <main className="container mx-auto px-4 py-8 max-w-5xl">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
-            {topics.sort((a, b) => b.weight - a.weight).map((t, idx) => {
-              const badges = getBadges(t.weight);
-              return (
-                <Card key={t.id}
-                  className="border border-border/60 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
-                  onClick={() => navigate(`/practice?topic=${t.id}`)}>
-                  <CardContent className="py-5 px-5 space-y-3">
-                    <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
-                      {idx + 1}. {t.name}
-                    </h3>
-                    <div className="flex gap-2">
-                      {badges.map((b, i) => (
-                        <span key={i} className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${b.color}`}>
-                          {b.label}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t.questionCount} questões • Peso {(t.weight * 100).toFixed(0)}% no exame
-                    </p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+        <main className="container mx-auto px-4 py-8 max-w-5xl space-y-8">
+          {areas.map(area => {
+            const areaTopics = topics.filter(t => t.area === area).sort((a, b) => b.weight - a.weight);
+            const totalQuestions = areaTopics.reduce((s, t) => s + t.questionCount, 0);
+            const marks = marksMap[area] || 0;
+            const blooms = bloomsMap[area] || 'BL1';
+            const diffBadge = getDiffBadge(marks);
+
+            return (
+              <div key={area} className="animate-fade-in">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-foreground">{area}</h2>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${diffBadge.color}`}>{diffBadge.label}</span>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-accent/15 text-accent">{blooms}</span>
+                    <span className="text-xs text-muted-foreground font-medium">{marks} no exame</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {areaTopics.map(t => (
+                    <Card key={t.id}
+                      className="border border-border/60 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
+                      onClick={() => navigate(`/practice?topic=${t.id}`)}>
+                      <CardContent className="py-4 px-5 space-y-2">
+                        <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                          {t.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {t.questionCount} questões
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </main>
       </div>
     );
