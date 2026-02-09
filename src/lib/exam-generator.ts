@@ -75,6 +75,18 @@ export function distributeByWeight(
     selected.push(...shuffled.slice(0, d.count));
   }
 
-  // Final shuffle
-  return selected.sort(() => Math.random() - 0.5);
+  // Shuffle within each topic group but keep topics together
+  // Sort by topic order (by weight descending) so heavier topics come first
+  const topicOrder = new Map<string, number>();
+  const sortedTopics = [...topics].sort((a, b) => Number(b.weight) - Number(a.weight));
+  sortedTopics.forEach((t, i) => topicOrder.set(t.id, i));
+
+  selected.sort((a, b) => {
+    const orderA = topicOrder.get(a.topic_id) ?? 999;
+    const orderB = topicOrder.get(b.topic_id) ?? 999;
+    if (orderA !== orderB) return orderA - orderB;
+    return Math.random() - 0.5; // shuffle within topic
+  });
+
+  return selected;
 }

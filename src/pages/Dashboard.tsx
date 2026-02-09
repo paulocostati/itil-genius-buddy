@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Play, History, Target, TrendingDown, LogOut, Trophy, BarChart3 } from 'lucide-react';
+import { BookOpen, Play, History, Target, TrendingDown, LogOut, Trophy, BarChart3, GraduationCap } from 'lucide-react';
 
 interface TopicStat {
   name: string;
@@ -178,34 +178,54 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* New Exam */}
-        <Card className="border-0 shadow-lg animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="h-5 w-5 text-primary" /> Novo Simulado
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground mb-2 block">Número de questões</label>
-              <div className="flex gap-2">
-                {[20, 30, 40].map(n => (
-                  <Button key={n} variant={questionCount === n ? 'default' : 'outline'} size="sm"
-                    onClick={() => setQuestionCount(n)}
-                    className={questionCount === n ? 'gradient-primary text-primary-foreground' : ''}>
-                    {n} questões
-                  </Button>
-                ))}
+        {/* Actions Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* New Exam */}
+          <Card className="border-0 shadow-lg animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Play className="h-5 w-5 text-primary" /> Novo Simulado
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">Número de questões</label>
+                <div className="flex gap-2">
+                  {[20, 30, 40].map(n => (
+                    <Button key={n} variant={questionCount === n ? 'default' : 'outline'} size="sm"
+                      onClick={() => setQuestionCount(n)}
+                      className={questionCount === n ? 'gradient-primary text-primary-foreground' : ''}>
+                      {n} questões
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              As questões serão distribuídas proporcionalmente ao peso oficial do syllabus ITIL 4.
-            </p>
-            <Button onClick={createExam} className="gradient-primary text-primary-foreground" size="lg">
-              <Play className="h-4 w-4 mr-2" /> Iniciar Simulado
-            </Button>
-          </CardContent>
-        </Card>
+              <p className="text-sm text-muted-foreground">
+                Questões agrupadas por tópico, proporcionais ao peso do syllabus ITIL 4.
+              </p>
+              <Button onClick={createExam} className="gradient-primary text-primary-foreground" size="lg">
+                <Play className="h-4 w-4 mr-2" /> Iniciar Simulado
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Practice Mode */}
+          <Card className="border-0 shadow-lg animate-fade-in" style={{ animationDelay: '0.15s' }}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-accent" /> Treino por Tópico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Escolha um tópico específico e pratique suas questões com feedback imediato e explicações.
+              </p>
+              <Button onClick={() => navigate('/practice')} className="gradient-accent text-accent-foreground" size="lg">
+                <GraduationCap className="h-4 w-4 mr-2" /> Praticar por Tópico
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Weak Topics */}

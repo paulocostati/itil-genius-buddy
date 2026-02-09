@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Exam from "./pages/Exam";
 import Result from "./pages/Result";
+import Practice from "./pages/Practice";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/exam/:examId" element={<Exam />} />
             <Route path="/result/:examId" element={<Result />} />
+            <Route path="/practice" element={<Practice />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
