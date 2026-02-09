@@ -23,6 +23,7 @@ interface PracticeQuestion {
   option_d: string;
   correct_option: string;
   explanation: string | null;
+  question_type: string;
 }
 
 export default function Practice() {
@@ -69,7 +70,7 @@ export default function Practice() {
   async function loadQuestions(tid: string) {
     const { data } = await supabase
       .from('questions')
-      .select('id, statement, option_a, option_b, option_c, option_d, correct_option, explanation')
+      .select('id, statement, option_a, option_b, option_c, option_d, correct_option, explanation, question_type')
       .eq('topic_id', tid);
 
     if (data) {
@@ -207,6 +208,15 @@ export default function Practice() {
     { key: 'D', text: current.option_d },
   ];
 
+  const questionType = current.question_type || 'standard';
+  const typeBadge: Record<string, { label: string; color: string }> = {
+    standard: { label: 'STD', color: 'bg-primary/15 text-primary' },
+    list: { label: 'LIST', color: 'bg-accent/15 text-accent' },
+    missing_word: { label: 'MW', color: 'bg-warning/15 text-warning' },
+    negative: { label: 'NEG', color: 'bg-destructive/15 text-destructive' },
+  };
+  const badge = typeBadge[questionType] || typeBadge.standard;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
@@ -227,6 +237,11 @@ export default function Practice() {
       <div className="flex-1 container mx-auto px-4 py-6 max-w-3xl">
         <Card className="border-0 shadow-lg animate-fade-in" key={current.id}>
           <CardContent className="pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${badge.color}`}>
+                {badge.label}
+              </span>
+            </div>
             <p className="text-base leading-relaxed font-medium mb-6">{current.statement}</p>
             <div className="space-y-3">
               {options.map(opt => {
