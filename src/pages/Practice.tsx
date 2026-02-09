@@ -105,7 +105,16 @@ export default function Practice() {
 
   // Topic selection view
   if (!topicId) {
-    const areas = [...new Set(topics.map(t => t.area))];
+    // Determine difficulty/level badges based on weight
+    const getBadges = (weight: number): { label: string; color: string }[] => {
+      const difficulty = weight >= 0.12 ? { label: 'ALTO', color: 'bg-destructive/15 text-destructive' }
+        : weight >= 0.05 ? { label: 'MED', color: 'bg-primary/15 text-primary' }
+        : { label: 'BAIXO', color: 'bg-success/15 text-success' };
+      const level = weight >= 0.10 ? { label: 'NB2', color: 'bg-accent/15 text-accent' }
+        : { label: 'NB1', color: 'bg-primary/15 text-primary' };
+      return [difficulty, level];
+    };
+
     return (
       <div className="min-h-screen bg-background">
         <div className="gradient-hero text-primary-foreground">
@@ -113,30 +122,37 @@ export default function Practice() {
             <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-primary-foreground hover:bg-primary-foreground/10 mb-4">
               <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
             </Button>
-            <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="h-6 w-6" /> Treino por Tópico</h1>
+            <h1 className="text-2xl font-bold flex items-center gap-2">📚 Selecione os Tópicos</h1>
             <p className="text-sm opacity-80 mt-1">Escolha um tópico para praticar questões específicas</p>
           </div>
         </div>
-        <main className="container mx-auto px-4 py-8 max-w-3xl space-y-8">
-          {areas.map(area => (
-            <div key={area} className="space-y-3 animate-fade-in">
-              <h2 className="text-lg font-bold text-foreground">{area}</h2>
-              <div className="grid gap-3">
-                {topics.filter(t => t.area === area).sort((a, b) => b.weight - a.weight).map(t => (
-                  <Card key={t.id} className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => navigate(`/practice?topic=${t.id}`)}>
-                    <CardContent className="py-4 flex items-center justify-between">
-                      <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{t.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Peso: {(t.weight * 100).toFixed(1)}% • {t.questionCount} questões</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          ))}
+        <main className="container mx-auto px-4 py-8 max-w-5xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
+            {topics.sort((a, b) => b.weight - a.weight).map((t, idx) => {
+              const badges = getBadges(t.weight);
+              return (
+                <Card key={t.id}
+                  className="border border-border/60 shadow-sm hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
+                  onClick={() => navigate(`/practice?topic=${t.id}`)}>
+                  <CardContent className="py-5 px-5 space-y-3">
+                    <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                      {idx + 1}. {t.name}
+                    </h3>
+                    <div className="flex gap-2">
+                      {badges.map((b, i) => (
+                        <span key={i} className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${b.color}`}>
+                          {b.label}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t.questionCount} questões • Peso {(t.weight * 100).toFixed(0)}% no exame
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </main>
       </div>
     );
