@@ -17,6 +17,9 @@ interface ExamQuestion {
     option_b: string;
     option_c: string;
     option_d: string;
+    topics: {
+      name: string;
+    };
   };
 }
 
@@ -37,7 +40,7 @@ export default function Exam() {
   async function loadExam() {
     const { data } = await supabase
       .from('exam_questions')
-      .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d)')
+      .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d, topics(name))')
       .eq('exam_id', examId!)
       .order('question_order');
 
@@ -101,6 +104,9 @@ export default function Exam() {
   if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
 
   const current = questions[currentIndex];
+  const currentTopicName = current?.questions?.topics?.name || '';
+  const prevTopicName = currentIndex > 0 ? questions[currentIndex - 1]?.questions?.topics?.name || '' : '';
+  const showTopicHeader = currentTopicName !== prevTopicName;
   if (!current) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Nenhuma questão encontrada.</div>;
 
   const answeredCount = Object.keys(answers).length;
@@ -156,6 +162,13 @@ export default function Exam() {
 
       {/* Question Content */}
       <div className="flex-1 container mx-auto px-4 py-6 max-w-3xl">
+        {showTopicHeader && (
+          <div className="mb-4 px-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary px-3 py-1 rounded-full bg-primary/10">
+              {currentTopicName}
+            </span>
+          </div>
+        )}
         <Card className="border-0 shadow-lg animate-fade-in" key={current.id}>
           <CardContent className="pt-6">
             <p className="text-base leading-relaxed font-medium mb-6">{current.questions.statement}</p>
