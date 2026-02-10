@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Exam from "./pages/Exam";
 import Result from "./pages/Result";
 import Practice from "./pages/Practice";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/exam/:examId" element={<Exam />} />
             <Route path="/result/:examId" element={<Result />} />
             <Route path="/practice" element={<Practice />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
