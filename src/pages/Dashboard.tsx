@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Play, History, Target, TrendingDown, LogOut, Trophy, BarChart3, GraduationCap } from 'lucide-react';
+import { BookOpen, Play, History, Target, TrendingDown, LogOut, Trophy, BarChart3, GraduationCap, Shield } from 'lucide-react';
 
 interface TopicStat {
   name: string;
@@ -27,6 +28,7 @@ interface ExamHistory {
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [exams, setExams] = useState<ExamHistory[]>([]);
@@ -134,9 +136,16 @@ export default function Dashboard() {
               <p className="text-sm opacity-80">Foundation Exam Prep</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10">
-            <LogOut className="h-4 w-4 mr-2" /> Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="text-primary-foreground hover:bg-primary-foreground/10">
+                <Shield className="h-4 w-4 mr-2" /> Admin
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10">
+              <LogOut className="h-4 w-4 mr-2" /> Sair
+            </Button>
+          </div>
         </div>
       </header>
 
