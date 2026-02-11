@@ -46,8 +46,8 @@ export async function startExam(userId: string, productId: string, productSlug: 
     }
 
     // 5. Generate Exam (select questions)
-    // Use product.question_count OR default 40
-    const count = product.question_count || 40;
+    // Limit to 20 if it's a demo, otherwise use product count (default 40)
+    const count = isDemo ? Math.min(product.question_count || 40, 20) : (product.question_count || 40);
     const selected = distributeByWeight(topics as any[], questionsByTopic, count);
 
     // 6. Create Exam Record

@@ -67,6 +67,7 @@ export default function Practice() {
   const [selectedTopics, setSelectedTopics] = useState<Set<string>>(new Set());
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set(['standard', 'negative', 'missing_word', 'list']));
   const [questionCount, setQuestionCount] = useState<number[]>([10]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   // State for Session
   const [sessionActive, setSessionActive] = useState(false);
@@ -100,6 +101,19 @@ export default function Practice() {
     try {
       setLoadingTopics(true);
       const categoryId = searchParams.get('category');
+
+      // Check Entitlement
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && categoryId) {
+        const { data: entitlement } = await supabase
+          .from('entitlements')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('category_id', categoryId)
+          .single();
+        setIsSubscribed(!!entitlement);
+      }
+
       let query = supabase.from('topics').select('id, name, area, weight, category_id');
 
       if (categoryId) {
@@ -491,16 +505,28 @@ export default function Practice() {
                   </div>
                   <Slider
                     value={questionCount}
-                    onValueChange={setQuestionCount}
-                    max={100}
+                    onValueChange={(val) => {
+                      if (!isSubscribed && val[0] > 20) {
+                        setQuestionCount([20]);
+                        toast.info("Limite de 20 questões para versão gratuita.");
+                      } else {
+                        setQuestionCount(val);
+                      }
+                    }}
+                    max={isSubscribed ? 100 : 20}
                     min={5}
                     step={5}
                     className="py-4"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Mín: 5</span>
-                    <span>Máx: 100</span>
+                    <span>Máx: {isSubscribed ? 100 : 20}</span>
                   </div>
+                  {!isSubscribed && (
+                    <p className="text-[10px] text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
+                      Modo gratuito limitado a 20 questões. Adquira o acesso completo para liberar todo o banco.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-4 pt-2 border-t text-sm">
