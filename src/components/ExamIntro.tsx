@@ -3,13 +3,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Clock, Target, BookOpen, CheckCircle, AlertTriangle, ListChecks } from 'lucide-react';
 
 interface ExamIntroProps {
+  examTitle?: string;
   totalQuestions: number;
+  durationMinutes?: number;
+  passPercentage?: number;
   onStart: () => void;
 }
 
-export default function ExamIntro({ totalQuestions, onStart }: ExamIntroProps) {
-  const timeLimit = 60;
-  const passMark = Math.ceil(totalQuestions * 0.65);
+export default function ExamIntro({
+  examTitle = "Simulado de Exame",
+  totalQuestions,
+  durationMinutes = 60,
+  passPercentage = 65,
+  onStart
+}: ExamIntroProps) {
+  const passMark = Math.ceil(totalQuestions * (passPercentage / 100));
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -19,8 +27,8 @@ export default function ExamIntro({ totalQuestions, onStart }: ExamIntroProps) {
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl gradient-primary mx-auto mb-4">
               <BookOpen className="h-8 w-8 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">ITIL 4 Foundation</h1>
-            <p className="text-sm text-muted-foreground mt-1">Simulado de Exame</p>
+            <h1 className="text-2xl font-bold text-foreground">{examTitle}</h1>
+            <p className="text-sm text-muted-foreground mt-1">Simulado Oficial</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -28,7 +36,7 @@ export default function ExamIntro({ totalQuestions, onStart }: ExamIntroProps) {
               <Clock className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
                 <p className="text-xs text-muted-foreground">Duração</p>
-                <p className="text-sm font-bold">{timeLimit} minutos</p>
+                <p className="text-sm font-bold">{durationMinutes} minutos</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">
@@ -42,7 +50,7 @@ export default function ExamIntro({ totalQuestions, onStart }: ExamIntroProps) {
               <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
               <div>
                 <p className="text-xs text-muted-foreground">Aprovação</p>
-                <p className="text-sm font-bold">65% ({passMark}/{totalQuestions})</p>
+                <p className="text-sm font-bold">{passPercentage}% ({passMark}/{totalQuestions})</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50">

@@ -1,24 +1,39 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BookOpen, Mail, Lock, User } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { BookOpen, Mail, Lock, User, Code } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Auth() {
-  const { user, loading } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { user, loading, signIn, signUp } = useAuth();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const mode = searchParams.get('mode');
+  const next = searchParams.get('next') || '/';
+
+  const [isSignUp, setIsSignUp] = useState(mode === 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { signUp, signIn } = useAuth();
-  const { toast } = useToast();
+
+  useEffect(() => {
+    if (mode === 'signup') setIsSignUp(true);
+    else if (mode === 'login') setIsSignUp(false);
+  }, [mode]);
+
+  useEffect(() => {
+    if (user && !loading) {
+      navigate(next);
+    }
+  }, [user, loading, next, navigate]);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return null; // Logic handled in useEffect
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,13 +42,15 @@ export default function Auth() {
       if (isSignUp) {
         const { error } = await signUp(email, password, displayName);
         if (error) throw error;
-        toast({ title: 'Conta criada!', description: 'Verifique seu e-mail para confirmar o cadastro.' });
+        toast.success('Conta criada! Verifique seu e-mail.');
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
+        toast.success('Login realizado!');
+        // Redirect happens via useEffect
       }
     } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+      toast.error(err.message || 'Erro na autenticação');
     } finally {
       setSubmitting(false);
     }
@@ -43,10 +60,10 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center gradient-hero p-4">
       <Card className="w-full max-w-md animate-scale-in border-0 shadow-2xl">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl gradient-primary">
-            <BookOpen className="h-7 w-7 text-primary-foreground" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Code className="h-7 w-7" />
           </div>
-          <CardTitle className="text-2xl">ITIL 4 Study</CardTitle>
+          <CardTitle className="text-2xl font-bold">Examtis</CardTitle>
           <CardDescription>{isSignUp ? 'Crie sua conta para começar' : 'Entre para continuar seus estudos'}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -54,7 +71,13 @@ export default function Auth() {
             {isSignUp && (
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Seu nome" value={displayName} onChange={e => setDisplayName(e.target.value)} className="pl-10" />
+                <Input
+                  placeholder="Seu nome"
+                  value={displayName}
+                  onChange={e => setDisplayName(e.target.value)}
+                  className="pl-10"
+                  required
+                />
               </div>
             )}
             <div className="relative">
@@ -65,13 +88,21 @@ export default function Auth() {
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input type="password" placeholder="Senha" required minLength={6} value={password} onChange={e => setPassword(e.target.value)} className="pl-10" />
             </div>
-            <Button type="submit" className="w-full gradient-primary text-primary-foreground" disabled={submitting}>
+            <Button type="submit" className="w-full" disabled={submitting}>
               {submitting ? 'Aguarde...' : isSignUp ? 'Criar conta' : 'Entrar'}
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline">
-              {isSignUp ? 'Já tenho uma conta' : 'Criar nova conta'}
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                // Optional: update URL
+                navigate(`?mode=${!isSignUp ? 'signup' : 'login'}&next=${next}`, { replace: true });
+              }}
+              className="text-primary hover:underline font-medium"
+            >
+              {isSignUp ? 'Já tenho uma conta? Entrar' : 'Não tem conta? Criar agora'}
             </button>
           </div>
         </CardContent>
