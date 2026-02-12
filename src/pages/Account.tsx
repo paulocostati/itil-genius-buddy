@@ -19,12 +19,8 @@ export default function Account() {
         enabled: !!user,
         queryFn: async () => {
             // Join with products
-            const { data, error } = await supabase
-                .from('entitlements')
-                .select(`
-          *,
-          products (*)
-        `)
+            const { data, error } = await (supabase.from as any)('entitlements')
+                .select('*, products (*)')
                 .eq('user_id', user!.id);
 
             if (error) throw error;
@@ -36,12 +32,8 @@ export default function Account() {
         queryKey: ['orders', user?.id],
         enabled: !!user,
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('orders')
-                .select(`
-          *,
-          products (*)
-        `)
+            const { data, error } = await (supabase.from as any)('orders')
+                .select('*, products (*)')
                 .eq('user_id', user!.id)
                 .order('created_at', { ascending: false });
 

@@ -102,19 +102,14 @@ export default function Practice() {
       setLoadingTopics(true);
       const categoryId = searchParams.get('category');
 
-      // Check Entitlement
+      // Check Subscription
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && categoryId) {
-        const { data: entitlement } = await supabase
-          .from('entitlements')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('category_id', categoryId)
-          .single();
-        setIsSubscribed(!!entitlement);
+      if (user) {
+        const { data: hasSub } = await (supabase.rpc as any)('has_active_subscription', { _user_id: user.id });
+        setIsSubscribed(!!hasSub);
       }
 
-      let query = supabase.from('topics').select('id, name, area, weight, category_id');
+      let query = (supabase.from as any)('topics').select('id, name, area, weight, category_id');
 
       if (categoryId) {
         query = query.eq('category_id', categoryId);

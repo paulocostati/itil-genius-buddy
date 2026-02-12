@@ -14,8 +14,8 @@ export function useAdmin() {
       return;
     }
 
-    supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })
-      .then(({ data }) => {
+    (supabase.rpc as any)('has_role', { _user_id: user.id, _role: 'admin' })
+      .then(({ data }: { data: boolean }) => {
         setIsAdmin(!!data);
         setLoading(false);
       });

@@ -54,7 +54,7 @@ export default function Admin() {
       // Let's assume the user IS admin if they accessed this protected route properly
       // BUT for security we should check
 
-      const { data } = await supabase.from('admin_users').select('*').eq('id', user.id).single();
+      const { data } = await (supabase.rpc as any)('has_role', { _user_id: user.id, _role: 'admin' });
       // If table doesn't exist, this might fail.
       // Let's rely on the previous logic if available or just proceed.
       setIsAdmin(true);
@@ -65,8 +65,7 @@ export default function Admin() {
 
   async function loadOrders() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('orders')
+    const { data, error } = await (supabase.from as any)('orders')
       .select(`
         *,
         products (title),
@@ -86,23 +85,20 @@ export default function Admin() {
   async function handleApprove(order: AdminOrder) {
     try {
       // 1. Update Order Status
-      const { error: orderError } = await supabase
-        .from('orders')
+      const { error: orderError } = await (supabase.from as any)('orders')
         .update({ status: 'APPROVED' })
         .eq('id', order.id);
 
       if (orderError) throw orderError;
 
       // 2. Create Entitlement
-      const { error: entError } = await supabase
-        .from('entitlements')
+      const { error: entError } = await (supabase.from as any)('entitlements')
         .insert({
           user_id: order.user_id,
           product_id: order.product_id,
           source_order_id: order.id,
           status: 'ACTIVE',
           starts_at: new Date().toISOString()
-          // ends_at is null for lifetime
         });
 
       if (entError) throw entError;
@@ -117,8 +113,7 @@ export default function Admin() {
 
   async function handleReject(orderId: string) {
     try {
-      const { error } = await supabase
-        .from('orders')
+      const { error } = await (supabase.from as any)('orders')
         .update({ status: 'REJECTED' })
         .eq('id', orderId);
 

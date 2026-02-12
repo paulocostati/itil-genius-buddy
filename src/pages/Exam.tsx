@@ -75,8 +75,7 @@ export default function Exam() {
   async function loadExam() {
     try {
       // 1. Fetch Exam Details with Product Info
-      const { data: exam, error: examError } = await supabase
-        .from('exams')
+      const { data: exam, error: examError } = await (supabase.from as any)('exams')
         .select(`
             *,
             product:products (

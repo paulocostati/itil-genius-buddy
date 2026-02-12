@@ -18,9 +18,7 @@ const Catalog = () => {
         queryKey: ['products'],
         queryFn: async () => {
             // We might need to select specific columns or just all
-            const { data, error } = await supabase
-                .from('products')
-                .select('*')
+            const { data, error } = await (supabase.from as any)('products')
                 .select('*');
 
             if (error) {
