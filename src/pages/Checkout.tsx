@@ -35,8 +35,7 @@ export default function Checkout() {
         queryKey: ['product-checkout', slug],
         enabled: !!slug,
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('products')
+            const { data, error } = await (supabase.from as any)('products')
                 .select('*')
                 .eq('slug', slug)
                 .single();
@@ -55,8 +54,7 @@ export default function Checkout() {
 
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('orders')
+            const { data, error } = await (supabase.from as any)('orders')
                 .insert({
                     user_id: user.id,
                     product_id: product.id,
@@ -85,19 +83,16 @@ export default function Checkout() {
         try {
             setLoading(true);
             // Create payment record
-            const { error } = await supabase
-                .from('order_payments')
+            const { error } = await (supabase.from as any)('order_payments')
                 .insert({
                     order_id: orderId,
                     proof_text: proofText,
-                    // proof_url: ... (file upload would be here, skipping for simplicity in MVP unless needed)
                 });
 
             if (error) throw error;
 
             // Update order status
-            const { error: updateError } = await supabase
-                .from('orders')
+            const { error: updateError } = await (supabase.from as any)('orders')
                 .update({ status: 'PAID_REVIEW' })
                 .eq('id', orderId);
 

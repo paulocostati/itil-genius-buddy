@@ -213,7 +213,7 @@ export default function Result() {
                 size="lg"
                 className="gradient-primary text-primary-foreground shadow-lg px-8 h-12 text-lg whitespace-nowrap"
                 onClick={async () => {
-                  const { data } = await supabase.from('products').select('slug').eq('id', exam.product_id).single();
+                  const { data } = await (supabase.from as any)('products').select('slug').eq('id', exam.product_id).single();
                   if (data) navigate(`/checkout/${data.slug}`);
                 }}
               >

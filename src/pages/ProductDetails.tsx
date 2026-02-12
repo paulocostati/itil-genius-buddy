@@ -18,8 +18,7 @@ const ProductDetails = () => {
     const { data: product, isLoading, error } = useQuery({
         queryKey: ['product', slug],
         queryFn: async () => {
-            const { data, error } = await supabase
-                .from('products')
+            const { data, error } = await (supabase.from as any)('products')
                 .select('*')
                 .eq('slug', slug)
                 .single();
@@ -34,8 +33,7 @@ const ProductDetails = () => {
         queryKey: ['entitlement', product?.id],
         enabled: !!product?.id && !!user,
         queryFn: async () => {
-            const { data } = await supabase
-                .from('entitlements')
+            const { data } = await (supabase.from as any)('entitlements')
                 .select('*')
                 .eq('user_id', user!.id)
                 .eq('product_id', product.id)

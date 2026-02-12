@@ -3,8 +3,7 @@ import { distributeByWeight } from "./exam-generator";
 
 export async function startExam(userId: string, productId: string, productSlug: string, isDemo: boolean = false) {
     // 1. Get Product info to know category/technology
-    const { data: product } = await supabase
-        .from('products')
+    const { data: product } = await (supabase.from as any)('products')
         .select('category_id, question_count')
         .eq('id', productId)
         .single();
@@ -14,7 +13,7 @@ export async function startExam(userId: string, productId: string, productSlug: 
     // 2. Fetch Topics for this Category
     // If product.category_id is null/undefined (e.g. legacy), we might fetch all?
     // But our schema enforces linkage ideally.
-    let query = supabase.from('topics').select('*');
+    let query = (supabase.from as any)('topics').select('*');
 
     if (product.category_id) {
         query = query.eq('category_id', product.category_id);
@@ -51,8 +50,7 @@ export async function startExam(userId: string, productId: string, productSlug: 
     const selected = distributeByWeight(topics as any[], questionsByTopic, count);
 
     // 6. Create Exam Record
-    const { data: exam, error: examError } = await supabase
-        .from('exams')
+    const { data: exam, error: examError } = await (supabase.from as any)('exams')
         .insert({
             user_id: userId,
             total_questions: selected.length,

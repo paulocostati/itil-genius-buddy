@@ -15,8 +15,8 @@ export function useSubscription() {
     }
 
     // Check if user is admin (admins always have access)
-    supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })
-      .then(({ data: isAdmin }) => {
+    (supabase.rpc as any)('has_role', { _user_id: user.id, _role: 'admin' })
+      .then(({ data: isAdmin }: { data: boolean }) => {
         if (isAdmin) {
           setHasAccess(true);
           setLoading(false);
@@ -24,8 +24,8 @@ export function useSubscription() {
         }
 
         // Check active subscription
-        supabase.rpc('has_active_subscription', { _user_id: user.id })
-          .then(({ data }) => {
+        (supabase.rpc as any)('has_active_subscription', { _user_id: user.id })
+          .then(({ data }: { data: boolean }) => {
             setHasAccess(!!data);
             setLoading(false);
           });
