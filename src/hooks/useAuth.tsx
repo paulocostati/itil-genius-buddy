@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -43,6 +43,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { display_name: displayName || email },
       },
     });
+
+    // Fire-and-forget welcome email
+    if (!error && data.user) {
+      supabase.functions.invoke('send-welcome-email', {
+        body: { user_id: data.user.id, display_name: displayName || email },
+      }).catch(err => console.warn('Welcome email failed:', err));
+    }
+
     return { error: error as Error | null };
   };
 
