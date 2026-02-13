@@ -72,12 +72,18 @@ export default function Index() {
         <div className="container px-4 md:px-6 relative z-10">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
             <div className="space-y-8 max-w-xl">
-              <h1 className="text-4xl md:text-[3.4rem] leading-[1.06] font-extrabold tracking-tight">
-                Certificação não é tentativa. É{" "}
-                <span className="text-primary">estratégia.</span>
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/[0.08]">
+                <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-primary">ITIL 4 Foundation</span>
+                <span className="text-[10px] text-dim">•</span>
+                <span className="text-[10px] tracking-wider uppercase text-dim">Certificação Principal</span>
+              </div>
+              <h1 className="text-4xl md:text-[3.6rem] leading-[1.04] font-extrabold tracking-tight">
+                <span className="text-primary">ITIL 4</span> exige{" "}
+                estratégia.{" "}
+                <span className="text-foreground/50">Não tentativa.</span>
               </h1>
-              <p className="text-lg leading-relaxed text-muted-foreground">
-                Simulações estruturadas com base no peso oficial do exame ITIL 4 para profissionais que querem aprovação com precisão.
+              <p className="text-lg leading-relaxed text-foreground/80">
+                Simulações estruturadas com base no peso oficial do exame para profissionais que querem aprovação com precisão.
               </p>
               <p className="text-sm text-dim">
                 Inclui acesso às certificações AZ-900 e AI-900.
@@ -95,11 +101,14 @@ export default function Index() {
             {/* Mockup */}
             <div className="hidden lg:block">
               <div className="rounded-2xl p-8 shadow-2xl bg-card border border-border">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-warning/60" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
-                  <span className="ml-3 text-[10px] tracking-wider uppercase text-dim">ITIL 4 Foundation — Dashboard Estratégico</span>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-warning/60" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
+                    <span className="ml-3 text-[10px] font-semibold tracking-wider uppercase text-primary">ITIL 4 Foundation</span>
+                  </div>
+                  <span className="text-[9px] tracking-wider uppercase px-2 py-0.5 rounded-full border border-primary/20 text-dim">Baseado no blueprint oficial</span>
                 </div>
                 <div className="space-y-4">
                   {[
