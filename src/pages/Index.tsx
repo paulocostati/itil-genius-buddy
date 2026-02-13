@@ -70,34 +70,36 @@ export default function Index() {
 
       {/* Hero */}
       <section className="relative pt-28 pb-36 overflow-hidden">
+        {/* Brand gradient background */}
+        <div className="absolute inset-0 gradient-hero -z-0" />
+        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full blur-[160px] -z-0 bg-primary/[0.06]" />
+        
         <div className="container px-4 md:px-6 relative z-10">
           <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-12 items-center">
             <div className="space-y-8 max-w-xl">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/[0.08]">
                 <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-primary">ITIL 4 Foundation</span>
-                <span className="text-[10px] text-dim">•</span>
+                <span className="text-[10px] text-muted-foreground">•</span>
                 <span className="text-[10px] tracking-wider uppercase text-muted-foreground">Certificação Principal</span>
               </div>
               <h1 className="text-4xl md:text-[3.6rem] leading-[1.04] font-extrabold tracking-tight">
-                <span className="text-primary">ITIL 4</span> exige{" "}
+                <span className="text-gradient-primary">ITIL 4</span> exige{" "}
                 estratégia.{" "}
-                <span className="text-foreground/50">Não tentativa.</span>
+                <span className="text-foreground/40">Não tentativa.</span>
               </h1>
-              <p className="text-lg leading-relaxed text-foreground/80">
+              <p className="text-lg leading-relaxed text-foreground/85">
                 Simulações estruturadas com base no peso oficial do exame para profissionais que querem aprovação com precisão.
               </p>
               <p className="text-sm text-muted-foreground">
                 Inclui acesso às certificações AZ-900 e AI-900.
               </p>
-              <div className="flex items-center gap-6 pt-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide" asChild>
-                    <a href="#plans">Acessar preparação estratégica</a>
-                  </Button>
-                  <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide text-muted-foreground" asChild>
-                    <a href="#methodology">Entender a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
-                  </Button>
-                </div>
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide gradient-primary shadow-[0_4px_24px_hsl(216_100%_50%/0.3)] hover:shadow-[0_4px_32px_hsl(216_100%_50%/0.45)] transition-shadow border-0" asChild>
+                  <a href="#plans">Acessar preparação estratégica</a>
+                </Button>
+                <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide text-muted-foreground" asChild>
+                  <a href="#methodology">Entender a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
+                </Button>
               </div>
             </div>
 
@@ -148,7 +150,7 @@ export default function Index() {
             </div>
           </div>
         </div>
-        <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] rounded-full blur-[140px] -z-0 bg-primary/[0.03]" />
+        
       </section>
 
       {/* Positioning */}
