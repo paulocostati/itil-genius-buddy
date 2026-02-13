@@ -14,6 +14,8 @@ import QuestionPreviewTable from '@/components/QuestionPreviewTable';
 import VendorManager from '@/components/admin/VendorManager';
 import CategoryManager from '@/components/admin/CategoryManager';
 import ProductManager from '@/components/admin/ProductManager';
+import TopicManager from '@/components/admin/TopicManager';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AdminOrder {
   id: string;
@@ -38,6 +40,8 @@ export default function Admin() {
   const [extracting, setExtracting] = useState(false);
   const [extractedQuestions, setExtractedQuestions] = useState<any[] | null>(null);
   const [extractedTopics, setExtractedTopics] = useState<any[]>([]);
+  const [importCategoryId, setImportCategoryId] = useState<string>('');
+  const [categories, setCategories] = useState<{ id: string; name: string; vendors?: { name: string } }[]>([]);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -56,11 +60,13 @@ export default function Admin() {
 
   useEffect(() => {
     if (!user) return;
-    // Check admin & load
     (supabase.rpc as any)('has_role', { _user_id: user.id, _role: 'admin' })
       .then(({ data }: { data: boolean }) => {
         if (!data) { navigate('/'); return; }
         loadOrders();
+        // Load categories for import selector
+        (supabase.from as any)('categories').select('id, name, vendors(name)').order('name')
+          .then(({ data: catData }: any) => setCategories(catData || []));
       });
   }, [user, navigate, loadOrders]);
 
@@ -116,7 +122,7 @@ export default function Admin() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ filePath }),
+        body: JSON.stringify({ filePath, categoryId: importCategoryId || undefined }),
       });
 
       if (!res.ok) {
@@ -179,6 +185,7 @@ export default function Admin() {
           <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
+          <TabsTrigger value="topics">Tópicos</TabsTrigger>
           <TabsTrigger value="import">Importar Questões</TabsTrigger>
         </TabsList>
 
@@ -271,6 +278,10 @@ export default function Admin() {
           <ProductManager />
         </TabsContent>
 
+        <TabsContent value="topics" className="mt-4">
+          <TopicManager />
+        </TabsContent>
+
         <TabsContent value="import" className="mt-4">
           {extractedQuestions ? (
             <QuestionPreviewTable
@@ -292,6 +303,20 @@ export default function Admin() {
                 <p className="text-sm text-muted-foreground">
                   Faça upload de um PDF contendo questões de simulado. A IA extrairá automaticamente as questões, alternativas e respostas.
                 </p>
+                <div>
+                  <label className="text-xs text-muted-foreground">Categoria (filtra tópicos na extração)</label>
+                  <Select value={importCategoryId} onValueChange={setImportCategoryId}>
+                    <SelectTrigger><SelectValue placeholder="Todas as categorias" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas as categorias</SelectItem>
+                      {categories.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {(c as any).vendors?.name} › {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="border-2 border-dashed rounded-lg p-8 text-center">
                   <input
                     type="file"
