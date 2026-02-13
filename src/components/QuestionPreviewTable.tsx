@@ -183,12 +183,15 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {(['a', 'b', 'c', 'd'] as const).map(letter => (
+                  {(['a', 'b', 'c', 'd'] as const).filter(letter => {
+                    const val = q[`option_${letter}` as keyof ExtractedQuestion] as string | null;
+                    return letter === 'a' || letter === 'b' || (val && val.trim() !== '');
+                  }).map(letter => (
                     <div key={letter} className={`flex items-start gap-1 p-2 rounded border ${q.correct_option.toLowerCase() === letter ? 'bg-green-50 border-green-300' : ''}`}>
                       <span className="font-bold text-xs mt-1 uppercase">{letter})</span>
                       <Input
                         className="h-auto text-xs p-1"
-                        value={q[`option_${letter}` as keyof ExtractedQuestion] as string}
+                        value={(q[`option_${letter}` as keyof ExtractedQuestion] as string) || ''}
                         onChange={e => updateQuestion(idx, `option_${letter}` as keyof ExtractedQuestion, e.target.value)}
                       />
                     </div>
