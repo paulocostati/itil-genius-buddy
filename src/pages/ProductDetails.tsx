@@ -185,7 +185,7 @@ const ProductDetails = () => {
                                 </Button>
                             )}
 
-                            {product.demo_enabled && !entitlement && (
+                            {product.is_demo_available && !entitlement && (
                                 <Button variant="outline" className="w-full" onClick={async () => {
                                     try {
                                         if (!user) {
