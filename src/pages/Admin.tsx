@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import { toast } from "sonner";
 import QuestionPreviewTable from '@/components/QuestionPreviewTable';
+import VendorManager from '@/components/admin/VendorManager';
+import CategoryManager from '@/components/admin/CategoryManager';
+import ProductManager from '@/components/admin/ProductManager';
 
 interface AdminOrder {
   id: string;
@@ -170,9 +173,12 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="pending">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="pending">Pendentes</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="vendors">Fornecedores</TabsTrigger>
+          <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="import">Importar Questões</TabsTrigger>
         </TabsList>
 
@@ -251,6 +257,18 @@ export default function Admin() {
               </div>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="vendors" className="mt-4">
+          <VendorManager />
+        </TabsContent>
+
+        <TabsContent value="categories" className="mt-4">
+          <CategoryManager />
+        </TabsContent>
+
+        <TabsContent value="products" className="mt-4">
+          <ProductManager />
         </TabsContent>
 
         <TabsContent value="import" className="mt-4">

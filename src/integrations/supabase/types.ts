@@ -14,6 +14,85 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon_url: string | null
+          id: string
+          name: string
+          slug: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          name: string
+          slug: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entitlements: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          product_id: string
+          source_order_id: string | null
+          starts_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          product_id: string
+          source_order_id?: string | null
+          starts_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          product_id?: string
+          source_order_id?: string | null
+          starts_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entitlements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_questions: {
         Row: {
           answered_at: string | null
@@ -64,6 +143,8 @@ export type Database = {
           completed: boolean
           finished_at: string | null
           id: string
+          is_demo: boolean
+          product_id: string | null
           score: number | null
           started_at: string
           time_limit_minutes: number | null
@@ -74,6 +155,8 @@ export type Database = {
           completed?: boolean
           finished_at?: string | null
           id?: string
+          is_demo?: boolean
+          product_id?: string | null
           score?: number | null
           started_at?: string
           time_limit_minutes?: number | null
@@ -84,13 +167,146 @@ export type Database = {
           completed?: boolean
           finished_at?: string | null
           id?: string
+          is_demo?: boolean
+          product_id?: string | null
           score?: number | null
           started_at?: string
           time_limit_minutes?: number | null
           total_questions?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "exams_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_payments: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          proof_text: string | null
+          proof_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          proof_text?: string | null
+          proof_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          proof_text?: string | null
+          proof_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          customer_email: string
+          id: string
+          product_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          customer_email: string
+          id?: string
+          product_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          customer_email?: string
+          id?: string
+          product_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_demo_available: boolean
+          passing_score: number
+          price_cents: number
+          question_count: number
+          slug: string
+          time_limit_minutes: number
+          title: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_demo_available?: boolean
+          passing_score?: number
+          price_cents?: number
+          question_count?: number
+          slug: string
+          time_limit_minutes?: number
+          title: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_demo_available?: boolean
+          passing_score?: number
+          price_cents?: number
+          question_count?: number
+          slug?: string
+          time_limit_minutes?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -173,6 +389,7 @@ export type Database = {
         Row: {
           area: string
           blooms_level: string
+          category_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -182,6 +399,7 @@ export type Database = {
         Insert: {
           area: string
           blooms_level?: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -191,13 +409,22 @@ export type Database = {
         Update: {
           area?: string
           blooms_level?: string
+          category_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
           name?: string
           weight?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "topics_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -256,6 +483,33 @@ export type Database = {
           plan_days?: number
           starts_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
         }
         Relationships: []
       }
