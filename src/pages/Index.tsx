@@ -71,7 +71,7 @@ export default function Index() {
       {/* Hero */}
       <section className="relative pt-28 pb-36 overflow-hidden">
         <div className="container px-4 md:px-6 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-20 items-center">
+          <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-12 items-center">
             <div className="space-y-8 max-w-xl">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/[0.08]">
                 <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-primary">ITIL 4 Foundation</span>
@@ -99,10 +99,15 @@ export default function Index() {
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-4 pt-2">
-                <img src={itil4Badge} alt="ITIL 4 Foundation Certified by PeopleCert" className="h-16 w-16 object-contain" />
-                <span className="text-xs text-dim leading-snug">Certificação oficial<br />by PeopleCert</span>
+            </div>
+
+            {/* ITIL 4 Badge - Visual highlight */}
+            <div className="hidden lg:flex flex-col items-center justify-center">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl scale-125" />
+                <img src={itil4Badge} alt="ITIL 4 Foundation Certified by PeopleCert" className="relative h-64 w-64 object-contain drop-shadow-2xl" />
               </div>
+              <p className="text-xs text-dim mt-4 tracking-wider uppercase text-center">Certificação oficial by PeopleCert</p>
             </div>
 
             {/* Mockup */}
