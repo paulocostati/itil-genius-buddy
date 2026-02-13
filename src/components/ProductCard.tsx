@@ -66,7 +66,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     {product.question_count && (
                         <div className="flex items-center gap-1">
                             <HelpCircle className="h-3.5 w-3.5" />
-                            <span>{product.question_count} items</span>
+                            <span>{product.question_count} questões</span>
                         </div>
                     )}
                     <div className="flex items-center gap-1">

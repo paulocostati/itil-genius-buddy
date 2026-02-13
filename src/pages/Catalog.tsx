@@ -31,7 +31,35 @@ const Catalog = () => {
         .select('id, name, slug, description, categories(id, name, slug, products(*))') 
         .order('name');
       if (error) throw error;
-      return (data || []) as VendorWithProducts[];
+      const vendorData = (data || []) as VendorWithProducts[];
+
+      // Fetch real question counts per category
+      const { data: questions } = await supabase.from('questions').select('topic_id');
+      const { data: topicsData } = await (supabase.from as any)('topics').select('id, category_id');
+      
+      const categoryQuestionCount = new Map<string, number>();
+      if (questions && topicsData) {
+        const topicToCategory = new Map<string, string>();
+        for (const t of topicsData) {
+          if (t.category_id) topicToCategory.set(t.id, t.category_id);
+        }
+        for (const q of questions) {
+          const catId = topicToCategory.get(q.topic_id);
+          if (catId) categoryQuestionCount.set(catId, (categoryQuestionCount.get(catId) || 0) + 1);
+        }
+      }
+
+      // Enrich products with real question count
+      for (const vendor of vendorData) {
+        for (const cat of vendor.categories) {
+          const realCount = categoryQuestionCount.get(cat.id) || 0;
+          for (const p of (cat.products || [])) {
+            (p as any).question_count = realCount > 0 ? realCount : p.question_count;
+          }
+        }
+      }
+
+      return vendorData;
     }
   });
 
