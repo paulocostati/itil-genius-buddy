@@ -260,6 +260,19 @@ REGRAS:
           return;
         }
 
+        // Validate topic_ids against actual topics
+        const validTopicIds = new Set((topics || []).map((t: any) => t.id));
+        let fixedCount = 0;
+        for (const q of questions) {
+          if (q.topic_id && !validTopicIds.has(q.topic_id)) {
+            q.topic_id = null;
+            fixedCount++;
+          }
+        }
+        if (fixedCount > 0) {
+          sendEvent(controller, "progress", { message: `⚠️ ${fixedCount} questões tinham tópicos inválidos (corrigidos para seleção manual)` });
+        }
+
         sendEvent(controller, "progress", { message: `✅ ${questions.length} questões extraídas com sucesso!` });
 
         // Clean up file
