@@ -41,19 +41,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 ) : (
                     <Layers className="h-16 w-16 text-muted-foreground/30" />
                 )}
-                <div className="absolute top-2 right-2">
-                    <Badge variant="secondary" className="font-semibold">
-                        {product.technology || 'IT'}
-                    </Badge>
-                </div>
             </div>
 
             <CardHeader className="p-4 pb-2">
-                <div className="flex justify-between items-start gap-2">
-                    <Badge variant="outline" className="text-xs mb-2">
-                        {product.level || 'Geral'}
-                    </Badge>
-                </div>
                 <CardTitle className="text-lg font-bold leading-tight line-clamp-2 h-14">
                     <Link to={`/product/${product.slug}`} className="hover:text-primary transition-colors">
                         {product.title}
