@@ -166,8 +166,11 @@ const ProductDetails = () => {
                                             const { startExam } = await import("@/lib/exam-starter");
                                             const examId = await startExam(user.id, product.id, product.slug);
                                             navigate(`/exam/${examId}`);
-                                        } catch (e) {
-                                            toast.error("Erro ao iniciar simulado");
+                                        } catch (e: any) {
+                                            const msg = e?.message?.includes("No questions") 
+                                                ? "Este exame ainda não possui questões cadastradas." 
+                                                : "Erro ao iniciar simulado";
+                                            toast.error(msg);
                                         }
                                     }}>
                                         <PlayCircle className="mr-2 h-5 w-5" />
@@ -196,9 +199,12 @@ const ProductDetails = () => {
                                         const { startExam } = await import("@/lib/exam-starter");
                                         const examId = await startExam(user.id, product.id, product.slug, true);
                                         navigate(`/exam/${examId}`);
-                                    } catch (e) {
+                                    } catch (e: any) {
                                         console.error(e);
-                                        toast.error("Erro ao iniciar demo");
+                                        const msg = e?.message?.includes("No questions") 
+                                            ? "Este exame ainda não possui questões cadastradas." 
+                                            : "Erro ao iniciar demo";
+                                        toast.error(msg);
                                     }
                                 }}>
                                     Experimentar Demo Grátis
