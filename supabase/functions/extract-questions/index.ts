@@ -11,77 +11,88 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  // We'll stream SSE events back to the client for progress
+  const encoder = new TextEncoder();
+  
+  function sendEvent(controller: ReadableStreamDefaultController, type: string, data: any) {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type, ...data })}\n\n`));
+  }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        const authHeader = req.headers.get("Authorization");
+        if (!authHeader?.startsWith("Bearer ")) {
+          sendEvent(controller, "error", { error: "Unauthorized" });
+          controller.close();
+          return;
+        }
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const lovableApiKey = Deno.env.get("LOVABLE_API_KEY")!;
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await userClient.auth.getUser(token);
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+        const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+          global: { headers: { Authorization: authHeader } },
+        });
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: isAdmin } = await adminClient.rpc("has_role", {
-      _user_id: user.id, _role: "admin",
-    });
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+        const token = authHeader.replace("Bearer ", "");
+        const { data: { user }, error: userError } = await userClient.auth.getUser(token);
+        if (userError || !user) {
+          sendEvent(controller, "error", { error: "Unauthorized" });
+          controller.close();
+          return;
+        }
 
-    const { filePath, categoryId } = await req.json();
+        const adminClient = createClient(supabaseUrl, serviceRoleKey);
+        const { data: isAdmin } = await adminClient.rpc("has_role", {
+          _user_id: user.id, _role: "admin",
+        });
+        if (!isAdmin) {
+          sendEvent(controller, "error", { error: "Forbidden: admin only" });
+          controller.close();
+          return;
+        }
 
-    // Download the PDF
-    const { data: fileData, error: fileError } = await adminClient.storage
-      .from("admin-uploads").download(filePath);
-    if (fileError || !fileData) {
-      console.error("File download error:", fileError);
-      return new Response(JSON.stringify({ error: "Failed to download file" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+        const { filePath, categoryId } = await req.json();
 
-    // Convert PDF to base64
-    const arrayBuffer = await fileData.arrayBuffer();
-    const bytes = new Uint8Array(arrayBuffer);
-    let binary = "";
-    const chunkSize = 8192;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-    }
-    const base64 = btoa(binary);
-    console.log(`PDF size: ${bytes.length} bytes`);
+        sendEvent(controller, "progress", { message: "Baixando PDF do storage..." });
 
-    // Fetch topics
-    let topicsQuery = adminClient.from("topics").select("id, name, area");
-    if (categoryId && categoryId !== "all") {
-      topicsQuery = topicsQuery.eq("category_id", categoryId);
-    }
-    const { data: topics } = await topicsQuery;
+        const { data: fileData, error: fileError } = await adminClient.storage
+          .from("admin-uploads").download(filePath);
+        if (fileError || !fileData) {
+          sendEvent(controller, "error", { error: "Failed to download file" });
+          controller.close();
+          return;
+        }
 
-    const topicsList = (topics || [])
-      .map((t: any) => `- ID: ${t.id} | Nome: ${t.name} | Área: ${t.area}`)
-      .join("\n");
+        sendEvent(controller, "progress", { message: "Convertendo PDF para base64..." });
 
-    const systemPrompt = `Você é um extrator de questões de exame de certificação a partir de PDFs.
+        const arrayBuffer = await fileData.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = "";
+        const chunkSize = 8192;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        }
+        const base64 = btoa(binary);
+
+        sendEvent(controller, "progress", { message: `PDF processado (${(bytes.length / 1024 / 1024).toFixed(1)} MB). Carregando tópicos...` });
+
+        let topicsQuery = adminClient.from("topics").select("id, name, area");
+        if (categoryId && categoryId !== "all") {
+          topicsQuery = topicsQuery.eq("category_id", categoryId);
+        }
+        const { data: topics } = await topicsQuery;
+
+        const topicsList = (topics || [])
+          .map((t: any) => `- ID: ${t.id} | Nome: ${t.name} | Área: ${t.area}`)
+          .join("\n");
+
+        sendEvent(controller, "progress", { message: `${(topics || []).length} tópicos encontrados. Enviando para IA...` });
+
+        const systemPrompt = `Você é um extrator de questões de exame de certificação a partir de PDFs.
 Analise o documento PDF e extraia TODAS as questões encontradas.
 
 Para cada questão, retorne um objeto JSON com estes campos:
@@ -115,115 +126,137 @@ REGRAS:
 - Mantenha texto original
 - Use gabarito se disponível`;
 
-    // Use streaming to avoid wall clock timeout
-    console.log("Calling AI gateway with streaming...");
-    const aiResponse = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${lovableApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          max_tokens: 100000,
-          stream: true,
-          messages: [
-            { role: "system", content: systemPrompt },
-            {
-              role: "user",
-              content: [
+        sendEvent(controller, "progress", { message: "🤖 IA analisando o PDF... isto pode levar 1-3 min" });
+
+        const aiResponse = await fetch(
+          "https://ai.gateway.lovable.dev/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${lovableApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              max_tokens: 100000,
+              stream: true,
+              messages: [
+                { role: "system", content: systemPrompt },
                 {
-                  type: "text",
-                  text: "Extraia todas as questões deste PDF e retorne como um array JSON. Retorne APENAS o array JSON, sem markdown ou texto adicional.",
-                },
-                {
-                  type: "image_url",
-                  image_url: { url: `data:application/pdf;base64,${base64}` },
+                  role: "user",
+                  content: [
+                    {
+                      type: "text",
+                      text: "Extraia todas as questões deste PDF e retorne como um array JSON. Retorne APENAS o array JSON, sem markdown ou texto adicional.",
+                    },
+                    {
+                      type: "image_url",
+                      image_url: { url: `data:application/pdf;base64,${base64}` },
+                    },
+                  ],
                 },
               ],
-            },
-          ],
-        }),
-      }
-    );
+            }),
+          }
+        );
 
-    console.log("AI response status:", aiResponse.status);
-
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("AI error:", aiResponse.status, errText);
-      const status = aiResponse.status;
-      const msg = status === 429 ? "Rate limit. Tente em alguns minutos."
-        : status === 402 ? "Créditos insuficientes."
-        : `AI error (${status})`;
-      return new Response(JSON.stringify({ error: msg }), {
-        status, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Read SSE stream and accumulate content
-    let fullContent = "";
-    const reader = aiResponse.body!.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6).trim();
-        if (data === "[DONE]") continue;
-        try {
-          const parsed = JSON.parse(data);
-          const delta = parsed.choices?.[0]?.delta?.content;
-          if (delta) fullContent += delta;
-        } catch {
-          // skip malformed chunks
+        if (!aiResponse.ok) {
+          const errText = await aiResponse.text();
+          console.error("AI error:", aiResponse.status, errText);
+          const status = aiResponse.status;
+          const msg = status === 429 ? "Rate limit. Tente em alguns minutos."
+            : status === 402 ? "Créditos insuficientes."
+            : `AI error (${status})`;
+          sendEvent(controller, "error", { error: msg });
+          controller.close();
+          return;
         }
+
+        sendEvent(controller, "progress", { message: "🤖 IA respondendo... recebendo dados" });
+
+        // Read SSE stream, count questions as they appear, and forward progress
+        let fullContent = "";
+        const reader = aiResponse.body!.getReader();
+        const decoder = new TextDecoder();
+        let aiBuffer = "";
+        let questionCount = 0;
+        let lastReportedCount = 0;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          aiBuffer += decoder.decode(value, { stream: true });
+          const lines = aiBuffer.split("\n");
+          aiBuffer = lines.pop() || "";
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) {
+                fullContent += delta;
+                // Count how many complete questions we have so far
+                const matches = fullContent.match(/"statement"\s*:/g);
+                questionCount = matches ? matches.length : 0;
+                if (questionCount > lastReportedCount) {
+                  lastReportedCount = questionCount;
+                  sendEvent(controller, "progress", { 
+                    message: `🤖 Extraindo... ${questionCount} questões encontradas até agora`,
+                    questionsFound: questionCount 
+                  });
+                }
+              }
+            } catch {
+              // skip malformed chunks
+            }
+          }
+        }
+
+        sendEvent(controller, "progress", { message: `✅ IA finalizou. ${questionCount} questões detectadas. Processando JSON...` });
+
+        // Parse JSON
+        let questions: any[];
+        try {
+          const jsonMatch = fullContent.match(/\[[\s\S]*\]/);
+          if (!jsonMatch) throw new Error("No JSON array found");
+          questions = JSON.parse(jsonMatch[0]);
+        } catch (parseErr) {
+          console.error("Parse error:", parseErr, "Content preview:", fullContent.substring(0, 500));
+          sendEvent(controller, "error", { 
+            error: "Não foi possível extrair questões do PDF. Verifique o formato.",
+            raw: fullContent.substring(0, 1000) 
+          });
+          controller.close();
+          return;
+        }
+
+        sendEvent(controller, "progress", { message: `✅ ${questions.length} questões extraídas com sucesso!` });
+
+        // Clean up file
+        await adminClient.storage.from("admin-uploads").remove([filePath]);
+
+        // Send final result
+        sendEvent(controller, "done", { questions, topics: topics || [] });
+        controller.close();
+
+      } catch (e) {
+        console.error("extract-questions error:", e);
+        sendEvent(controller, "error", { error: e instanceof Error ? e.message : "Unknown error" });
+        controller.close();
       }
     }
+  });
 
-    console.log("AI stream complete, content length:", fullContent.length);
-
-    // Parse JSON
-    let questions: any[];
-    try {
-      const jsonMatch = fullContent.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error("No JSON array found");
-      questions = JSON.parse(jsonMatch[0]);
-    } catch (parseErr) {
-      console.error("Parse error:", parseErr, "Content preview:", fullContent.substring(0, 500));
-      return new Response(
-        JSON.stringify({
-          error: "Não foi possível extrair questões do PDF. Verifique o formato.",
-          raw: fullContent.substring(0, 1000),
-        }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log(`Extracted ${questions.length} questions`);
-
-    // Clean up file
-    await adminClient.storage.from("admin-uploads").remove([filePath]);
-
-    return new Response(
-      JSON.stringify({ questions, topics: topics || [] }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (e) {
-    console.error("extract-questions error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
+  return new Response(stream, {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+    },
+  });
 });
