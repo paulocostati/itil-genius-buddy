@@ -20,6 +20,7 @@ import Catalog from "./pages/Catalog";
 import ProductDetails from "./pages/ProductDetails";
 import Checkout from "./pages/Checkout";
 import Account from "./pages/Account";
+import PlanCheckout from "./pages/PlanCheckout";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/category/:slug" element={<Catalog />} />
               <Route path="/product/:slug" element={<ProductDetails />} />
               <Route path="/checkout/:slug" element={<Checkout />} />
+              <Route path="/plans/checkout" element={<PlanCheckout />} />
               <Route path="/account" element={<Account />} />
 
               {/* Legacy/Existing Routes - check if they need protection or refactoring */}
