@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, Trash2, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -36,6 +37,7 @@ interface Props {
 export default function QuestionPreviewTable({ questions: initialQuestions, topics, onImportDone }: Props) {
   const [questions, setQuestions] = useState<ExtractedQuestion[]>(initialQuestions);
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState({ current: 0, total: 0 });
   const [selected, setSelected] = useState<Set<number>>(new Set(initialQuestions.map((_, i) => i)));
 
   function toggleSelect(idx: number) {
@@ -72,29 +74,40 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
     }
 
     setImporting(true);
-    try {
-      const rows = valid.map(q => ({
-        statement: q.statement,
-        option_a: q.option_a,
-        option_b: q.option_b,
-        option_c: q.option_c,
-        option_d: q.option_d,
-        option_e: q.option_e || null,
-        correct_option: q.correct_option.toUpperCase(),
-        explanation: q.explanation || null,
-        question_type: q.question_type || 'standard',
-        topic_id: q.topic_id,
-        source: 'PDF Import',
-      }));
+    setImportProgress({ current: 0, total: valid.length });
 
-      const { error } = await (supabase.from as any)('questions').insert(rows);
-      if (error) throw error;
+    try {
+      const batchSize = 10;
+      let imported = 0;
+
+      for (let i = 0; i < valid.length; i += batchSize) {
+        const batch = valid.slice(i, i + batchSize);
+        const rows = batch.map(q => ({
+          statement: q.statement,
+          option_a: q.option_a,
+          option_b: q.option_b,
+          option_c: q.option_c,
+          option_d: q.option_d,
+          option_e: q.option_e || null,
+          correct_option: q.correct_option.toUpperCase(),
+          explanation: q.explanation || null,
+          question_type: q.question_type || 'standard',
+          topic_id: q.topic_id,
+          source: 'PDF Import',
+        }));
+
+        const { error } = await (supabase.from as any)('questions').insert(rows);
+        if (error) throw error;
+
+        imported += batch.length;
+        setImportProgress({ current: imported, total: valid.length });
+      }
 
       toast.success(`${valid.length} questões importadas com sucesso!`);
       onImportDone();
     } catch (e: any) {
       console.error(e);
-      toast.error("Erro ao importar: " + (e.message || "Erro desconhecido"));
+      toast.error(`Erro ao importar (${importProgress.current}/${importProgress.total}): ${e.message || "Erro desconhecido"}`);
     } finally {
       setImporting(false);
     }
@@ -110,10 +123,23 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
           <p className="text-sm text-muted-foreground">
             {questions.length} questões extraídas • {selectedCount} selecionadas • {validCount} válidas
           </p>
+          {importing && (
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-2">
+                <Progress value={(importProgress.current / importProgress.total) * 100} className="flex-1 h-2" />
+                <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                  {importProgress.current} / {importProgress.total}
+                </span>
+              </div>
+              <p className="text-xs text-primary font-medium">
+                Importando questão {importProgress.current} de {importProgress.total}...
+              </p>
+            </div>
+          )}
         </div>
         <Button onClick={handleImport} disabled={importing || validCount === 0} className="bg-green-600 hover:bg-green-700">
           <Save className="mr-2 h-4 w-4" />
-          {importing ? 'Importando...' : `Importar ${validCount} Questões`}
+          {importing ? `Importando ${importProgress.current}/${importProgress.total}...` : `Importar ${validCount} Questões`}
         </Button>
       </div>
 

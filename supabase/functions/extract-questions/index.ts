@@ -1,13 +1,12 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -33,15 +32,19 @@ serve(async (req) => {
     });
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const {
+      data: { user },
+      error: userError,
+    } = await userClient.auth.getUser(token);
+
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
 
     // Check admin role using service role client
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
@@ -68,11 +71,14 @@ serve(async (req) => {
       console.error("File download error:", fileError);
       return new Response(
         JSON.stringify({ error: "Failed to download file" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    // Convert PDF to base64 for the AI (chunked to avoid stack overflow)
+    // Convert PDF to base64 (chunked to avoid stack overflow)
     const arrayBuffer = await fileData.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
     let binary = "";
@@ -82,9 +88,11 @@ serve(async (req) => {
     }
     const base64 = btoa(binary);
 
+    console.log(`PDF size: ${bytes.length} bytes, base64 length: ${base64.length}`);
+
     // Fetch existing topics for mapping (filtered by category if provided)
     let topicsQuery = adminClient.from("topics").select("id, name, area");
-    if (categoryId && categoryId !== 'all') {
+    if (categoryId && categoryId !== "all") {
       topicsQuery = topicsQuery.eq("category_id", categoryId);
     }
     const { data: topics } = await topicsQuery;
@@ -128,7 +136,8 @@ REGRAS CRÍTICAS:
 - Se o documento tiver gabarito/respostas separadas, use para preencher correct_option e explanation
 - Para questões multi_select, correct_option deve conter TODAS as letras corretas (ex: "DE", "BCE")`;
 
-    // Call Lovable AI with the PDF
+    // Call AI with longer timeout
+    console.log("Calling AI gateway...");
     const aiResponse = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -139,6 +148,7 @@ REGRAS CRÍTICAS:
         },
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
+          max_tokens: 100000,
           messages: [
             { role: "system", content: systemPrompt },
             {
@@ -161,49 +171,84 @@ REGRAS CRÍTICAS:
       }
     );
 
+    console.log("AI response status:", aiResponse.status);
+
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
       console.error("AI error:", aiResponse.status, errText);
 
       if (aiResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Tente novamente em alguns minutos." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error:
+              "Rate limit exceeded. Tente novamente em alguns minutos.",
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
       if (aiResponse.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Créditos insuficientes para processar o PDF." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "Créditos insuficientes para processar o PDF.",
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
       return new Response(
-        JSON.stringify({ error: "AI processing failed" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: `AI processing failed (${aiResponse.status}): ${errText.substring(0, 200)}` }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const aiData = await aiResponse.json();
     const content = aiData.choices?.[0]?.message?.content || "";
+    
+    console.log("AI response length:", content.length, "finish_reason:", aiData.choices?.[0]?.finish_reason);
 
     // Parse the JSON from the AI response
     let questions: any[];
     try {
       // Try to extract JSON array from response (may be wrapped in markdown)
       const jsonMatch = content.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error("No JSON array found");
+      if (!jsonMatch) throw new Error("No JSON array found in AI response");
       questions = JSON.parse(jsonMatch[0]);
     } catch (parseErr) {
-      console.error("Parse error:", parseErr, "Content:", content.substring(0, 500));
+      console.error(
+        "Parse error:",
+        parseErr,
+        "Content preview:",
+        content.substring(0, 500)
+      );
+      
+      // If the response was truncated (finish_reason != "stop"), let the user know
+      const finishReason = aiData.choices?.[0]?.finish_reason;
+      const errorMsg = finishReason === "length" 
+        ? "A resposta da IA foi truncada (PDF muito grande). Tente dividir o PDF em partes menores."
+        : "Não foi possível extrair questões do PDF. Verifique o formato.";
+      
       return new Response(
         JSON.stringify({
-          error: "Não foi possível extrair questões do PDF. Verifique o formato.",
+          error: errorMsg,
           raw: content.substring(0, 1000),
         }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 422,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
+
+    console.log(`Successfully extracted ${questions.length} questions`);
 
     // Clean up the uploaded file
     await adminClient.storage.from("admin-uploads").remove([filePath]);
@@ -215,8 +260,13 @@ REGRAS CRÍTICAS:
   } catch (e) {
     console.error("extract-questions error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: e instanceof Error ? e.message : "Unknown error",
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
     );
   }
 });
