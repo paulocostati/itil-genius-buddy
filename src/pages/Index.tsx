@@ -107,7 +107,7 @@ export default function Index() {
                 <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl scale-125" />
                 <img src={itil4Badge} alt="ITIL 4 Foundation Certified by PeopleCert" className="relative h-64 w-64 object-contain drop-shadow-2xl" />
               </div>
-              <p className="text-xs text-muted-foreground mt-4 tracking-wider uppercase text-center">Certificação oficial by PeopleCert</p>
+              
             </div>
 
             {/* Mockup */}
