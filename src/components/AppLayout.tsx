@@ -32,8 +32,7 @@ const Header = () => {
 
     const navLinks = [
         { name: "Simulados", path: "/catalog" },
-        { name: "Como Funciona", path: "/#how-it-works" },
-        { name: "Preços", path: "/#pricing" },
+        { name: "Planos", path: "/#plans" },
     ];
 
     const adminLinks = user ? [{ name: "Painel Admin", path: "/admin" }] : [];
