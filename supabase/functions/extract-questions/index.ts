@@ -72,9 +72,15 @@ serve(async (req) => {
       );
     }
 
-    // Convert PDF to base64 for the AI
+    // Convert PDF to base64 for the AI (chunked to avoid stack overflow)
     const arrayBuffer = await fileData.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = "";
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    const base64 = btoa(binary);
 
     // Fetch existing topics for mapping
     const { data: topics } = await adminClient.from("topics").select("id, name, area");
