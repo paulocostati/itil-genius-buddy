@@ -137,19 +137,9 @@ const Catalog = () => {
                   <Badge variant="secondary">{vendorProducts.length} simulado{vendorProducts.length !== 1 ? 's' : ''}</Badge>
                 </div>
                 {vendor.description && <p className="text-muted-foreground mb-4">{vendor.description}</p>}
-                {vendor.categories.map(cat => {
-                  if (!cat.products || cat.products.length === 0) return null;
-                  return (
-                    <div key={cat.id} className="mb-6">
-                      {vendor.categories.length > 1 && (
-                        <h3 className="text-lg font-semibold text-muted-foreground mb-3">{cat.name}</h3>
-                      )}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {cat.products.map(p => <ProductCard key={p.id} product={p} />)}
-                      </div>
-                    </div>
-                  );
-                })}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {vendorProducts.map(p => <ProductCard key={p.id} product={p} />)}
+                </div>
               </section>
             );
           })}
