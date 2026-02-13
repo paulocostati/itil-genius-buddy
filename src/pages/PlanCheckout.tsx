@@ -91,6 +91,9 @@ export default function PlanCheckout() {
     if (!user) { navigate("/auth"); return; }
     setLoading(true);
     try {
+      const finalPrice = getDiscountedPrice();
+      const isFree = finalPrice === 0;
+
       // Create a subscription with pending_activation status
       // starts_at and expires_at are placeholders — will be set on activation
       const placeholderExpires = new Date();
@@ -100,26 +103,35 @@ export default function PlanCheckout() {
         .insert({
           user_id: user.id,
           plan_days: planDays,
-          payment_status: "pending", // pending payment first
+          payment_status: isFree ? "pending_activation" : "pending",
           payment_method: "pix",
           starts_at: new Date().toISOString(),
           expires_at: placeholderExpires.toISOString(),
-          notes: appliedCoupon ? `Cupom: ${appliedCoupon.code}` : null,
+          notes: appliedCoupon ? `Cupom: ${appliedCoupon.code} (${appliedCoupon.discount_percent}% OFF)` : null,
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase subscription insert error:", JSON.stringify(error));
+        throw error;
+      }
 
       if (appliedCoupon) {
         await (supabase.rpc as any)("increment_coupon_usage", { _code: appliedCoupon.code }).catch(() => {});
       }
 
+      if (isFree) {
+        toast.success("Acesso liberado! Cupom 100% aplicado. Ative quando quiser na sua conta.");
+        navigate("/account?tab=access");
+        return;
+      }
+
       setSubscriptionId(data.id);
       toast.success("Pedido criado! Realize o pagamento.");
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao criar pedido.");
+    } catch (err: any) {
+      console.error("Subscription creation error:", err);
+      toast.error(err?.message || "Erro ao criar pedido.");
     } finally {
       setLoading(false);
     }
@@ -223,7 +235,10 @@ export default function PlanCheckout() {
           <CardFooter>
             <Button className="w-full" size="lg" onClick={createSubscription} disabled={loading}>
               {loading && <Loader2 className="mr-2 animate-spin" />}
-              Confirmar e Pagar com Pix {appliedCoupon ? formatPrice(getDiscountedPrice()) : ""}
+              {getDiscountedPrice() === 0
+                ? "Liberar Acesso Grátis"
+                : `Confirmar e Pagar com Pix ${appliedCoupon ? formatPrice(getDiscountedPrice()) : ""}`
+              }
             </Button>
           </CardFooter>
         </Card>
