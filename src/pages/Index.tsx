@@ -60,7 +60,7 @@ export default function Index() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Tagline bar */}
       <div className="flex items-center justify-between px-4 md:px-6 py-2.5 container border-b border-border">
-        <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+        <span className="text-[10px] tracking-[0.25em] uppercase text-foreground/60">
           Plataforma Estratégica de Simulação para Certificações
         </span>
         <button className="flex items-center gap-1.5 text-[10px] tracking-wider uppercase text-dim opacity-60 hover:opacity-100 transition-opacity">
