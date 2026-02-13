@@ -84,11 +84,7 @@ Deno.serve(async (req) => {
         if (categoryId && categoryId !== "all") {
           topicsQuery = topicsQuery.eq("category_id", categoryId);
         }
-        const { data: topics } = await topicsQuery;
-
-        const topicsList = (topics || [])
-          .map((t: any) => `- ID: ${t.id} | Nome: ${t.name} | Área: ${t.area}`)
-          .join("\n");
+        let { data: topics } = await topicsQuery;
 
         // Fetch syllabus content if URL provided
         let syllabusContent = "";
@@ -101,14 +97,13 @@ Deno.serve(async (req) => {
             });
             if (syllabusRes.ok) {
               const html = await syllabusRes.text();
-              // Extract text content from HTML (simple strip)
               syllabusContent = html
                 .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
                 .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
                 .replace(/<[^>]+>/g, ' ')
                 .replace(/\s+/g, ' ')
                 .trim()
-                .substring(0, 15000); // Limit to 15k chars
+                .substring(0, 15000);
               sendEvent(controller, "progress", { message: `📖 Syllabus carregado (${syllabusContent.length} chars)` });
             } else {
               sendEvent(controller, "progress", { message: `⚠️ Não foi possível acessar o syllabus (${syllabusRes.status})` });
@@ -117,6 +112,86 @@ Deno.serve(async (req) => {
             sendEvent(controller, "progress", { message: `⚠️ Erro ao buscar syllabus: ${e instanceof Error ? e.message : 'timeout'}` });
           }
         }
+
+        // Auto-create topics from syllabus if none exist for the category
+        if ((!topics || topics.length === 0) && syllabusContent && categoryId && categoryId !== "all") {
+          sendEvent(controller, "progress", { message: "🧠 Nenhum tópico encontrado. Gerando tópicos a partir do syllabus..." });
+          
+          const topicGenResponse = await fetch(
+            "https://ai.gateway.lovable.dev/v1/chat/completions",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${lovableApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                max_tokens: 8000,
+                messages: [
+                  {
+                    role: "system",
+                    content: `Você é um especialista em certificações de TI. Analise o conteúdo do syllabus abaixo e extraia os tópicos/domínios do exame.
+
+Para cada tópico retorne um objeto JSON com:
+- name: nome do tópico (ex: "Describe Cloud Concepts")
+- area: área/domínio principal (ex: "Cloud Concepts")  
+- weight: peso relativo no exame (1.0 a 3.0, baseado na importância)
+- blooms_level: "BL1" para recall/memorização, "BL2" para compreensão/aplicação
+- description: breve descrição do que o tópico cobre
+
+Retorne APENAS um array JSON, sem markdown ou texto adicional.
+Crie entre 4 e 15 tópicos que cubram todo o syllabus.`
+                  },
+                  {
+                    role: "user",
+                    content: `Extraia os tópicos deste syllabus:\n\n${syllabusContent}`
+                  }
+                ],
+              }),
+            }
+          );
+
+          if (topicGenResponse.ok) {
+            const topicGenData = await topicGenResponse.json();
+            const topicContent = topicGenData.choices?.[0]?.message?.content || "";
+            try {
+              const arrayStart = topicContent.indexOf("[");
+              const arrayEnd = topicContent.lastIndexOf("]");
+              if (arrayStart !== -1 && arrayEnd !== -1) {
+                const generatedTopics = JSON.parse(topicContent.substring(arrayStart, arrayEnd + 1));
+                
+                // Insert topics into DB
+                const topicRows = generatedTopics.map((t: any) => ({
+                  name: t.name,
+                  area: t.area || t.name,
+                  weight: t.weight || 1,
+                  blooms_level: t.blooms_level || "BL2",
+                  description: t.description || null,
+                  category_id: categoryId,
+                }));
+
+                const { data: insertedTopics, error: topicError } = await adminClient
+                  .from("topics")
+                  .insert(topicRows)
+                  .select("id, name, area");
+
+                if (topicError) {
+                  sendEvent(controller, "progress", { message: `⚠️ Erro ao criar tópicos: ${topicError.message}` });
+                } else {
+                  topics = insertedTopics;
+                  sendEvent(controller, "progress", { message: `✅ ${insertedTopics.length} tópicos criados automaticamente a partir do syllabus!` });
+                }
+              }
+            } catch (parseErr) {
+              sendEvent(controller, "progress", { message: `⚠️ Não foi possível interpretar tópicos do syllabus` });
+            }
+          }
+        }
+
+        const topicsList = (topics || [])
+          .map((t: any) => `- ID: ${t.id} | Nome: ${t.name} | Área: ${t.area}`)
+          .join("\n");
 
         sendEvent(controller, "progress", { message: `${(topics || []).length} tópicos encontrados. Enviando para IA...` });
 
