@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { CheckCircle2, ArrowRight, Globe } from "lucide-react";
+import itil4Badge from "@/assets/itil4-badge.png";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
@@ -88,13 +89,19 @@ export default function Index() {
               <p className="text-sm text-dim">
                 Inclui acesso às certificações AZ-900 e AI-900.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide" asChild>
-                  <a href="#plans">Acessar preparação estratégica</a>
-                </Button>
-                <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide text-muted-foreground" asChild>
-                  <a href="#methodology">Entender a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
-                </Button>
+              <div className="flex items-center gap-6 pt-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide" asChild>
+                    <a href="#plans">Acessar preparação estratégica</a>
+                  </Button>
+                  <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide text-muted-foreground" asChild>
+                    <a href="#methodology">Entender a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 pt-2">
+                <img src={itil4Badge} alt="ITIL 4 Foundation Certified by PeopleCert" className="h-16 w-16 object-contain" />
+                <span className="text-xs text-dim leading-snug">Certificação oficial<br />by PeopleCert</span>
               </div>
             </div>
 
