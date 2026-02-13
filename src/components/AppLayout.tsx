@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger } from
+"@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, User, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,55 +15,55 @@ import { toast } from "sonner";
 import logoExamtis from "@/assets/logo-examtis.png";
 
 const Header = () => {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [isOpen, setIsOpen] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
 
-    const handleLogout = async () => {
-        try {
-            await supabase.auth.signOut();
-            toast.success("Logged out successfully");
-            navigate("/");
-        } catch (error) {
-            toast.error("Error logging out");
-        }
-    };
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error logging out");
+    }
+  };
 
-    const navLinks = [
-        { name: "Simulados", path: "/catalog" },
-        { name: "Planos", path: "/#plans" },
-    ];
+  const navLinks = [
+  { name: "Simulados", path: "/catalog" },
+  { name: "Planos", path: "/#plans" }];
 
-    return (
-        <header className="sticky top-0 z-50 w-full border-b border-border" style={{ backgroundColor: 'hsl(224, 60%, 3%)' }}>
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-border" style={{ backgroundColor: 'hsl(224, 60%, 3%)' }}>
             <div className="container flex h-20 items-center justify-between px-8">
-                <div className="flex items-center gap-10">
+                <div className="gap-10 mx-0 my-0 px-[152px] flex items-center justify-center">
                     <Link to="/" className="relative flex items-center py-2">
-                        <img src={logoExamtis} alt="EXAMTIS" className="relative h-12 drop-shadow-[0_0_12px_hsl(216,100%,50%,0.5)]" />
+                        <img src={logoExamtis} alt="EXAMTIS" className="relative h-12 drop-shadow-[0_0_12px_hsl(216,100%,50%,0.5)] border-0 rounded-xl shadow-lg object-cover" />
                     </Link>
                     <nav className="hidden md:flex items-center gap-6">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.path}
-                                to={link.path}
-                                className="text-xs font-medium tracking-wide transition-colors hover:text-primary text-muted-foreground"
-                            >
+                        {navLinks.map((link) =>
+            <Link
+              key={link.path}
+              to={link.path}
+              className="text-xs font-medium tracking-wide transition-colors hover:text-primary text-muted-foreground">
+
                                 {link.name}
                             </Link>
-                        ))}
-                        {user && (
-                            <Link to="/account" className="text-xs font-medium tracking-wide transition-colors hover:text-primary text-muted-foreground">
+            )}
+                        {user &&
+            <Link to="/account" className="text-xs font-medium tracking-wide transition-colors hover:text-primary text-muted-foreground">
                                 Dashboard
                             </Link>
-                        )}
+            }
                     </nav>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <div className="hidden md:flex items-center gap-4">
-                        {user ? (
-                            <DropdownMenu>
+                        {user ?
+            <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="gap-2 text-muted-foreground hover:text-foreground">
                                         <User className="h-4 w-4" />
@@ -89,9 +89,9 @@ const Header = () => {
                                         Sair
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            <>
+                            </DropdownMenu> :
+
+            <>
                                 <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
                                     <Link to="/auth?mode=login">Entrar</Link>
                                 </Button>
@@ -99,7 +99,7 @@ const Header = () => {
                                     <Link to="/auth?mode=signup">Criar Conta</Link>
                                 </Button>
                             </>
-                        )}
+            }
                     </div>
 
                     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -111,18 +111,18 @@ const Header = () => {
                         <SheetContent side="right" className="bg-card border-border">
                             <div className="flex flex-col gap-6 mt-6">
                                 <nav className="flex flex-col gap-4">
-                                    {navLinks.map((link) => (
-                                        <Link
-                                            key={link.path}
-                                            to={link.path}
-                                            onClick={() => setIsOpen(false)}
-                                            className="text-lg font-medium"
-                                        >
+                                    {navLinks.map((link) =>
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className="text-lg font-medium">
+
                                             {link.name}
                                         </Link>
-                                    ))}
-                                    {user ? (
-                                        <>
+                  )}
+                                    {user ?
+                  <>
                                             <Link to="/account" onClick={() => setIsOpen(false)} className="text-lg font-medium">
                                                 Meus Acessos
                                             </Link>
@@ -130,14 +130,14 @@ const Header = () => {
                                                 Admin
                                             </Link>
                                             <button
-                                                onClick={() => { handleLogout(); setIsOpen(false); }}
-                                                className="text-lg font-medium text-left text-destructive"
-                                            >
+                      onClick={() => {handleLogout();setIsOpen(false);}}
+                      className="text-lg font-medium text-left text-destructive">
+
                                                 Sair
                                             </button>
-                                        </>
-                                    ) : (
-                                        <>
+                                        </> :
+
+                  <>
                                             <Link to="/auth?mode=login" onClick={() => setIsOpen(false)} className="text-lg font-medium">
                                                 Entrar
                                             </Link>
@@ -145,19 +145,19 @@ const Header = () => {
                                                 Criar Conta
                                             </Link>
                                         </>
-                                    )}
+                  }
                                 </nav>
                             </div>
                         </SheetContent>
                     </Sheet>
                 </div>
             </div>
-        </header>
-    );
+        </header>);
+
 };
 
-const Footer = () => (
-    <footer className="w-full border-t border-border bg-background py-12 md:py-16">
+const Footer = () =>
+<footer className="w-full border-t border-border bg-background py-12 md:py-16">
         <div className="container px-4 md:px-6">
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
                 <div>
@@ -192,19 +192,19 @@ const Footer = () => (
                 </div>
             </div>
         </div>
-    </footer>
-);
+    </footer>;
+
 
 const AppLayout = () => {
-    return (
-        <div className="min-h-screen flex flex-col font-sans antialiased bg-background text-foreground">
+  return (
+    <div className="min-h-screen flex flex-col font-sans antialiased bg-background text-foreground">
             <Header />
             <main className="flex-1 w-full">
                 <Outlet />
             </main>
             <Footer />
-        </div>
-    );
+        </div>);
+
 };
 
 export default AppLayout;
