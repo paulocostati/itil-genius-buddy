@@ -9,6 +9,7 @@ import AppLayout from "@/components/AppLayout";
 // Pages
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Exam from "./pages/Exam";
 import Result from "./pages/Result";
 import Practice from "./pages/Practice";
@@ -35,6 +36,7 @@ const App = () => (
             <Route element={<AppLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/catalog" element={<Catalog />} />
               <Route path="/category/:slug" element={<Catalog />} />
               <Route path="/product/:slug" element={<ProductDetails />} />

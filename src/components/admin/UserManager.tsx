@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Users, Shield, ShieldOff, CheckCircle, XCircle, Search, Loader2 } from 'lucide-react';
+import { Users, Shield, ShieldOff, CheckCircle, XCircle, Search, Loader2, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface UserProfile {
@@ -118,6 +118,22 @@ export default function UserManager() {
       loadData();
     } catch (e: any) {
       toast.error(e.message || 'Erro ao rejeitar');
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function resetPassword(userId: string) {
+    setActionLoading(userId + '-reset');
+    try {
+      const { data, error } = await supabase.functions.invoke('reset-user-password', {
+        body: { target_user_id: userId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.email_sent ? 'Senha redefinida e enviada por e-mail!' : 'Senha redefinida!');
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao redefinir senha');
     } finally {
       setActionLoading(null);
     }
@@ -239,20 +255,35 @@ export default function UserManager() {
                       )}
                     </div>
                   </div>
-                  <Button
-                    variant={role === 'admin' ? 'destructive' : 'outline'}
-                    size="sm"
-                    disabled={actionLoading === profile.user_id + '-role'}
-                    onClick={() => toggleAdmin(profile.user_id, role)}
-                  >
-                    {actionLoading === profile.user_id + '-role' ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : role === 'admin' ? (
-                      <><ShieldOff className="h-4 w-4 mr-1" /> Remover Admin</>
-                    ) : (
-                      <><Shield className="h-4 w-4 mr-1" /> Tornar Admin</>
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={actionLoading === profile.user_id + '-reset'}
+                      onClick={() => resetPassword(profile.user_id)}
+                      title="Resetar senha e enviar por e-mail"
+                    >
+                      {actionLoading === profile.user_id + '-reset' ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <><KeyRound className="h-4 w-4 mr-1" /> Resetar Senha</>
+                      )}
+                    </Button>
+                    <Button
+                      variant={role === 'admin' ? 'destructive' : 'outline'}
+                      size="sm"
+                      disabled={actionLoading === profile.user_id + '-role'}
+                      onClick={() => toggleAdmin(profile.user_id, role)}
+                    >
+                      {actionLoading === profile.user_id + '-role' ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : role === 'admin' ? (
+                        <><ShieldOff className="h-4 w-4 mr-1" /> Remover Admin</>
+                      ) : (
+                        <><Shield className="h-4 w-4 mr-1" /> Tornar Admin</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               );
             })}
