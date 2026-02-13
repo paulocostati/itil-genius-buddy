@@ -33,20 +33,30 @@ const Catalog = () => {
       if (error) throw error;
       const vendorData = (data || []) as VendorWithProducts[];
 
-      // Fetch real question counts per category
-      const { data: questions } = await supabase.from('questions').select('topic_id');
+      // Fetch real question counts per category using topics
       const { data: topicsData } = await (supabase.from as any)('topics').select('id, category_id');
-      
       const categoryQuestionCount = new Map<string, number>();
-      if (questions && topicsData) {
-        const topicToCategory = new Map<string, string>();
+      
+      if (topicsData && topicsData.length > 0) {
+        // Group topic IDs by category
+        const categoryTopics = new Map<string, string[]>();
         for (const t of topicsData) {
-          if (t.category_id) topicToCategory.set(t.id, t.category_id);
+          if (t.category_id) {
+            const arr = categoryTopics.get(t.category_id) || [];
+            arr.push(t.id);
+            categoryTopics.set(t.category_id, arr);
+          }
         }
-        for (const q of questions) {
-          const catId = topicToCategory.get(q.topic_id);
-          if (catId) categoryQuestionCount.set(catId, (categoryQuestionCount.get(catId) || 0) + 1);
-        }
+        
+        // Count questions per category using head:true count
+        await Promise.all(
+          Array.from(categoryTopics.entries()).map(async ([catId, topicIds]) => {
+            const { count } = await (supabase.from as any)('questions')
+              .select('id', { count: 'exact', head: true })
+              .in('topic_id', topicIds);
+            if (count !== null) categoryQuestionCount.set(catId, count);
+          })
+        );
       }
 
       // Enrich products with real question count
