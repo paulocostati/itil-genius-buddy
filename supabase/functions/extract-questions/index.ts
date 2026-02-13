@@ -218,16 +218,42 @@ REGRAS:
 
         sendEvent(controller, "progress", { message: `✅ IA finalizou. ${questionCount} questões detectadas. Processando JSON...` });
 
-        // Parse JSON
+        // Parse JSON - handle truncated responses
         let questions: any[];
         try {
-          const jsonMatch = fullContent.match(/\[[\s\S]*\]/);
-          if (!jsonMatch) throw new Error("No JSON array found");
-          questions = JSON.parse(jsonMatch[0]);
+          // Find the start of JSON array
+          const arrayStart = fullContent.indexOf("[");
+          if (arrayStart === -1) throw new Error("No JSON array found in response");
+          
+          let jsonStr = fullContent.substring(arrayStart);
+          
+          // Try parsing as-is first
+          try {
+            questions = JSON.parse(jsonStr);
+          } catch {
+            // Response likely truncated - try to fix it
+            // Remove any trailing incomplete object
+            const lastComplete = jsonStr.lastIndexOf("}");
+            if (lastComplete === -1) throw new Error("No complete JSON objects found");
+            
+            jsonStr = jsonStr.substring(0, lastComplete + 1);
+            
+            // Ensure array is closed
+            if (!jsonStr.trimEnd().endsWith("]")) {
+              // Remove trailing comma if present
+              jsonStr = jsonStr.replace(/,\s*$/, "");
+              jsonStr += "]";
+            }
+            
+            questions = JSON.parse(jsonStr);
+            sendEvent(controller, "progress", { 
+              message: `⚠️ Resposta da IA foi truncada. ${questions.length} questões recuperadas parcialmente.` 
+            });
+          }
         } catch (parseErr) {
           console.error("Parse error:", parseErr, "Content preview:", fullContent.substring(0, 500));
           sendEvent(controller, "error", { 
-            error: "Não foi possível extrair questões do PDF. Verifique o formato.",
+            error: "Não foi possível extrair questões do PDF. Tente novamente ou use um PDF menor.",
             raw: fullContent.substring(0, 1000) 
           });
           controller.close();
