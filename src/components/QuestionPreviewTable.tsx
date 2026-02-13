@@ -14,6 +14,7 @@ interface ExtractedQuestion {
   option_b: string;
   option_c: string;
   option_d: string;
+  option_e?: string | null;
   correct_option: string;
   explanation: string;
   question_type: string;
@@ -78,6 +79,7 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
         option_b: q.option_b,
         option_c: q.option_c,
         option_d: q.option_d,
+        option_e: q.option_e || null,
         correct_option: q.correct_option.toUpperCase(),
         explanation: q.explanation || null,
         question_type: q.question_type || 'standard',

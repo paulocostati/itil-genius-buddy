@@ -70,7 +70,7 @@ export default function Result() {
         .select(`
             id, question_order, selected_option, is_correct, 
             questions(
-                statement, option_a, option_b, option_c, option_d, 
+                statement, option_a, option_b, option_c, option_d, option_e, 
                 correct_option, explanation, 
                 topics(name, area)
             )
@@ -135,7 +135,7 @@ export default function Result() {
   });
 
   const optionLabel = (key: string, q: ResultQuestion['questions']) => {
-    const map: Record<string, string> = { A: q.option_a, B: q.option_b, C: q.option_c, D: q.option_d };
+    const map: Record<string, string> = { A: q.option_a, B: q.option_b, C: q.option_c, D: q.option_d, E: (q as any).option_e || '' };
     return map[key] || '';
   };
 
@@ -407,7 +407,7 @@ export default function Result() {
                       </p>
 
                       <div className="space-y-2">
-                        {['A', 'B', 'C', 'D'].map(key => {
+                        {['A', 'B', 'C', 'D', ...((q.questions as any).option_e ? ['E'] : [])].map(key => {
                           const isCorrect = key === q.questions.correct_option;
                           const isSelected = key === q.selected_option;
 

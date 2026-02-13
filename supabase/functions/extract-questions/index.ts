@@ -93,30 +93,40 @@ serve(async (req) => {
       .map((t: any) => `- ID: ${t.id} | Nome: ${t.name} | Área: ${t.area}`)
       .join("\n");
 
-    const systemPrompt = `Você é um extrator de questões de exame ITIL 4 a partir de PDFs.
+    const systemPrompt = `Você é um extrator de questões de exame de certificação a partir de PDFs.
 Analise o documento PDF e extraia TODAS as questões encontradas.
 
 Para cada questão, retorne um objeto JSON com TODOS estes campos preenchidos:
 - statement: texto completo da pergunta (OBRIGATÓRIO - nunca deixe vazio)
 - option_a: texto COMPLETO da alternativa A (OBRIGATÓRIO - nunca deixe vazio)
 - option_b: texto COMPLETO da alternativa B (OBRIGATÓRIO - nunca deixe vazio)
-- option_c: texto COMPLETO da alternativa C (OBRIGATÓRIO - nunca deixe vazio)
-- option_d: texto COMPLETO da alternativa D (OBRIGATÓRIO - nunca deixe vazio)
-- correct_option: letra da resposta correta em MAIÚSCULA (A, B, C ou D)
+- option_c: texto COMPLETO da alternativa C (OBRIGATÓRIO)
+- option_d: texto COMPLETO da alternativa D (OBRIGATÓRIO)
+- option_e: texto da alternativa E (se existir, senão null)
+- correct_option: letra(s) da resposta correta em MAIÚSCULA (A, B, C, D, E, ou múltiplas como "DE")
 - explanation: explicação da resposta (se disponível no PDF, senão deixe string vazia)
-- question_type: "standard" (ou "list" se pedir 2 itens corretos, "missing_word" se tiver lacuna, "negative" se perguntar o que NÃO é correto)
+- question_type: tipo da questão (veja regras abaixo)
 - topic_id: o ID do tópico mais adequado da lista abaixo, ou null se não conseguir mapear
+
+TIPOS DE QUESTÃO:
+- "standard": múltipla escolha padrão com 1 resposta correta (A, B, C ou D)
+- "multi_select": quando pede 2+ respostas corretas (ex: "Each correct answer presents a complete solution"). correct_option deve conter as letras juntas (ex: "DE")
+- "hotspot_yesno": questões HOTSPOT com tabela Yes/No. CONVERTA cada afirmação em uma questão separada: statement = a afirmação, option_a = "Yes", option_b = "No", option_c e option_d ficam vazios ("")
+- "hotspot_complete": questões "complete the sentence" com lista de opções. Trate como standard.
+- "list": se pedir 2 itens corretos de uma lista
+- "missing_word": se tiver lacuna no texto
+- "negative": se perguntar o que NÃO é correto
 
 Tópicos disponíveis:
 ${topicsList}
 
 REGRAS CRÍTICAS:
 - Extraia TODAS as questões do documento, sem exceção
-- TODOS os campos option_a, option_b, option_c, option_d DEVEM conter o texto real das alternativas do PDF
-- A letra da resposta correta DEVE ser MAIÚSCULA (A, B, C ou D)
+- Para HOTSPOT Yes/No: SEPARE cada afirmação da tabela em uma questão individual
+- A letra da resposta correta DEVE ser MAIÚSCULA
 - Mantenha o texto original exato das questões e alternativas
 - Se o documento tiver gabarito/respostas separadas, use para preencher correct_option e explanation
-- NÃO retorne alternativas vazias - cada questão DEVE ter 4 alternativas com texto`;
+- Para questões multi_select, correct_option deve conter TODAS as letras corretas (ex: "DE", "BCE")`;
 
     // Call Lovable AI with the PDF
     const aiResponse = await fetch(

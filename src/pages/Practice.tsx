@@ -42,6 +42,7 @@ interface PracticeQuestion {
   option_b: string;
   option_c: string;
   option_d: string;
+  option_e: string | null;
   correct_option: string;
   explanation: string | null;
   question_type: string;
@@ -724,8 +725,9 @@ export default function Practice() {
                 { key: 'A', text: currentQ.option_a },
                 { key: 'B', text: currentQ.option_b },
                 { key: 'C', text: currentQ.option_c },
-                { key: 'D', text: currentQ.option_d }
-              ].map((opt) => {
+                { key: 'D', text: currentQ.option_d },
+                ...(currentQ.option_e ? [{ key: 'E', text: currentQ.option_e }] : [])
+              ].filter(opt => opt.text).map((opt) => {
                 const isSelected = selectedOption === opt.key;
                 const isCorrect = currentQ.correct_option === opt.key;
 
