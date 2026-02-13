@@ -24,6 +24,7 @@ interface ExamHistory {
   completed: boolean;
   started_at: string;
   finished_at: string | null;
+  is_practice: boolean;
 }
 
 export default function Dashboard() {
@@ -315,7 +316,7 @@ export default function Dashboard() {
                     onClick={() => exam.completed ? navigate(`/result/${exam.id}`) : navigate(`/exam/${exam.id}`)}>
                     <div>
                       <p className="text-sm font-medium">
-                        {exam.total_questions} questões
+                        {(exam as any).is_practice ? '🎯 Treino' : '📝 Simulado'} • {exam.total_questions} questões
                         {exam.completed && exam.score !== null && (
                           <span className={`ml-2 font-mono ${(exam.score / exam.total_questions * 100) >= 65 ? 'text-success' : 'text-destructive'}`}>
                             {Math.round(exam.score / exam.total_questions * 100)}%

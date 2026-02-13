@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
@@ -59,6 +60,7 @@ const QUESTION_TYPES: { id: QuestionType; label: string; color: string }[] = [
 export default function Practice() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // State for Configuration
   const [topics, setTopics] = useState<TopicInfo[]>([]);
@@ -80,7 +82,7 @@ export default function Practice() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [stats, setStats] = useState({ correct: 0, wrong: 0 });
   const [topicPerformance, setTopicPerformance] = useState<Record<string, { correct: number, total: number }>>({});
-
+  const [practiceExamId, setPracticeExamId] = useState<string | null>(null);
   // Initial Data Load
   useEffect(() => {
     loadTopics();
@@ -214,6 +216,31 @@ export default function Practice() {
 
       const shuffled = data.sort(() => Math.random() - 0.5).slice(0, questionCount[0]);
 
+      // Save practice session to DB
+      let examId: string | null = null;
+      if (user) {
+        const { data: exam, error: examError } = await (supabase.from as any)('exams')
+          .insert({
+            user_id: user.id,
+            total_questions: shuffled.length,
+            is_practice: true,
+            is_demo: false,
+          })
+          .select()
+          .single();
+
+        if (!examError && exam) {
+          examId = exam.id;
+          const examQuestions = shuffled.map((q, i) => ({
+            exam_id: exam.id,
+            question_id: q.id,
+            question_order: i + 1,
+          }));
+          await supabase.from('exam_questions').insert(examQuestions);
+        }
+      }
+
+      setPracticeExamId(examId);
       setQuestions(shuffled);
       setCurrentIndex(0);
       setStats({ correct: 0, wrong: 0 });
@@ -234,9 +261,10 @@ export default function Practice() {
     setSessionActive(false);
     setSessionFinished(false);
     setQuestions([]);
+    setPracticeExamId(null);
   };
 
-  const handleAnswer = useCallback((opt: string) => {
+  const handleAnswer = useCallback(async (opt: string) => {
     if (showAnswer) return;
     setSelectedOption(opt);
     setShowAnswer(true);
@@ -260,14 +288,39 @@ export default function Practice() {
     } else {
       setStats(s => ({ ...s, wrong: s.wrong + 1 }));
     }
-  }, [showAnswer, questions, currentIndex]);
 
-  const nextQuestion = () => {
+    // Save answer to DB
+    if (practiceExamId) {
+      await supabase
+        .from('exam_questions')
+        .update({
+          selected_option: opt,
+          is_correct: isCorrect,
+          answered_at: new Date().toISOString(),
+        })
+        .eq('exam_id', practiceExamId)
+        .eq('question_id', question.id);
+    }
+  }, [showAnswer, questions, currentIndex, practiceExamId]);
+
+  const nextQuestion = async () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(i => i + 1);
       setShowAnswer(false);
       setSelectedOption(null);
     } else {
+      // Finalize practice exam in DB
+      if (practiceExamId) {
+        const finalScore = stats.correct + (questions[currentIndex]?.correct_option === selectedOption ? 0 : 0);
+        // stats already updated by handleAnswer
+        await (supabase.from as any)('exams')
+          .update({
+            completed: true,
+            finished_at: new Date().toISOString(),
+            score: stats.correct,
+          })
+          .eq('id', practiceExamId);
+      }
       setSessionFinished(true);
       setSessionActive(false);
     }
@@ -411,10 +464,15 @@ export default function Practice() {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="pt-2">
-            <Button className="w-full h-12 text-lg gradient-primary text-primary-foreground" onClick={resetPractice}>
+          <CardFooter className="pt-2 flex gap-3">
+            <Button className="flex-1 h-12 text-lg gradient-primary text-primary-foreground" onClick={resetPractice}>
               Praticar Novamente
             </Button>
+            {practiceExamId && (
+              <Button variant="outline" className="flex-1 h-12 text-lg" onClick={() => navigate(`/result/${practiceExamId}`)}>
+                Ver Relatório Completo
+              </Button>
+            )}
           </CardFooter>
         </Card>
       </div>

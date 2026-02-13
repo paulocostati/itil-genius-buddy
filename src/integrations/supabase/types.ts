@@ -144,6 +144,7 @@ export type Database = {
           finished_at: string | null
           id: string
           is_demo: boolean
+          is_practice: boolean
           product_id: string | null
           score: number | null
           started_at: string
@@ -156,6 +157,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           is_demo?: boolean
+          is_practice?: boolean
           product_id?: string | null
           score?: number | null
           started_at?: string
@@ -168,6 +170,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           is_demo?: boolean
+          is_practice?: boolean
           product_id?: string | null
           score?: number | null
           started_at?: string
