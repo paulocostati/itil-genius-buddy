@@ -1,0 +1,2 @@
+ALTER TABLE public.questions DROP CONSTRAINT questions_correct_option_check;
+ALTER TABLE public.questions ADD CONSTRAINT questions_correct_option_check CHECK (correct_option = ANY (ARRAY['A'::bpchar, 'B'::bpchar, 'C'::bpchar, 'D'::bpchar, 'E'::bpchar]));
