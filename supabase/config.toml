@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.translate-questions]
 verify_jwt = false
+
+[functions.start-exam]
+verify_jwt = false
+
+[functions.grade-exam]
+verify_jwt = false

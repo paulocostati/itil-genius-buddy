@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { BookOpen, Play, History, Target, TrendingDown, LogOut, Trophy, BarChart3, GraduationCap, Shield } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TopicStat {
   name: string;
@@ -79,38 +80,19 @@ export default function Dashboard() {
   }
 
   async function createExam() {
-    // Fetch topics and questions
-    const { data: topics } = await supabase.from('topics').select('*');
-    const { data: questions } = await supabase.from('questions').select('*');
-    if (!topics || !questions) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('start-exam', {
+        body: { is_practice: false },
+      });
 
-    const { distributeByWeight } = await import('@/lib/exam-generator');
-    const questionsByTopic = new Map<string, any[]>();
-    for (const q of questions as any[]) {
-      const arr = questionsByTopic.get(q.topic_id) || [];
-      arr.push(q);
-      questionsByTopic.set(q.topic_id, arr);
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      navigate(`/exam/${data.exam_id}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Erro ao criar exame: " + e.message);
     }
-
-    const selected = distributeByWeight(topics as any[], questionsByTopic, questionCount);
-
-    // Create exam
-    const { data: exam, error: examError } = await supabase
-      .from('exams')
-      .insert({ user_id: user!.id, total_questions: selected.length })
-      .select()
-      .single();
-    if (examError || !exam) return;
-
-    // Create exam questions
-    const examQuestions = selected.map((q, i) => ({
-      exam_id: (exam as any).id,
-      question_id: q.id,
-      question_order: i + 1,
-    }));
-    await supabase.from('exam_questions').insert(examQuestions);
-
-    navigate(`/exam/${(exam as any).id}`);
   }
 
   const completedExams = exams.filter(e => e.completed);
