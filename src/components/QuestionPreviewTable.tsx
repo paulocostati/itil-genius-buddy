@@ -65,18 +65,17 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
   }
 
   async function handleImport() {
-    const validTopicIds = new Set(topics.map(t => t.id));
     const toImport = questions.filter((_, i) => selected.has(i));
-    const valid = toImport.filter(q => q.topic_id && validTopicIds.has(q.topic_id) && q.statement && q.correct_option);
-
-    const invalidTopicCount = toImport.filter(q => q.topic_id && !validTopicIds.has(q.topic_id)).length;
-    if (invalidTopicCount > 0) {
-      toast.warning(`${invalidTopicCount} questões têm tópicos inválidos e serão ignoradas. Selecione um tópico válido.`);
-    }
+    const valid = toImport.filter(q => q.topic_id && q.statement && q.correct_option);
 
     if (valid.length === 0) {
       toast.error("Nenhuma questão válida para importar. Verifique tópicos e campos obrigatórios.");
       return;
+    }
+
+    if (valid.length < toImport.length) {
+      const skipped = toImport.length - valid.length;
+      toast.warning(`${skipped} questões sem tópico serão ignoradas. Atribua um tópico para importá-las.`);
     }
 
     setImporting(true);
@@ -121,9 +120,8 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
     }
   }
 
-  const validTopicIds = new Set(topics.map(t => t.id));
   const selectedCount = [...selected].filter(i => i < questions.length).length;
-  const validCount = questions.filter((q, i) => selected.has(i) && q.topic_id && validTopicIds.has(q.topic_id) && q.statement && q.correct_option).length;
+  const validCount = questions.filter((q, i) => selected.has(i) && q.topic_id && q.statement && q.correct_option).length;
 
   return (
     <div className="space-y-4">
