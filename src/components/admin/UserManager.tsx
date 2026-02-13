@@ -98,6 +98,12 @@ export default function UserManager() {
         .update({ payment_status: 'approved', approved_at: new Date().toISOString() })
         .eq('id', sub.id);
       if (error) throw error;
+
+      // Send subscription email (fire-and-forget)
+      supabase.functions.invoke('send-access-email', {
+        body: { user_id: sub.user_id, type: 'subscription' },
+      }).catch(err => console.warn('Subscription email failed:', err));
+
       toast.success('Assinatura aprovada!');
       loadData();
     } catch (e: any) {

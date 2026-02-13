@@ -73,6 +73,27 @@ serve(async (req) => {
 
     if (entError) throw new Error("Erro ao liberar acesso: " + entError.message);
 
+    // Get product title for the email
+    const { data: productData } = await adminClient
+      .from("products")
+      .select("title")
+      .eq("id", order.product_id)
+      .single();
+
+    // Send access email (fire-and-forget)
+    fetch(`${supabaseUrl}/functions/v1/send-access-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        product_title: productData?.title || "Simulado",
+        type: "product",
+      }),
+    }).catch((e) => console.error("Email error:", e));
+
     return new Response(
       JSON.stringify({ success: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
