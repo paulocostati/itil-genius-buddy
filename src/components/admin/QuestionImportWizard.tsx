@@ -182,6 +182,15 @@ export default function QuestionImportWizard() {
               setExtractedQuestions(event.questions);
               setExtractedTopics(event.topics);
               toast.success(`${event.questions.length} questões extraídas!`);
+              // Auto-update product description if generated from syllabus
+              if (event.productDescription && selectedProductId) {
+                const { error: descErr } = await (supabase.from as any)('products')
+                  .update({ description: event.productDescription })
+                  .eq('id', selectedProductId);
+                if (!descErr) {
+                  toast.success('Descrição do produto atualizada a partir do syllabus!');
+                }
+              }
             } else if (event.type === 'error') {
               throw new Error(event.error);
             }

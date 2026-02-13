@@ -397,11 +397,55 @@ REGRAS:
 
         sendEvent(controller, "progress", { message: `✅ ${questions.length} questões extraídas com sucesso!` });
 
+        // Generate product description from syllabus if available
+        let productDescription: string | null = null;
+        if (syllabusContent) {
+          sendEvent(controller, "progress", { message: "📝 Gerando descrição do produto a partir do syllabus..." });
+          try {
+            const descResponse = await fetch(
+              "https://ai.gateway.lovable.dev/v1/chat/completions",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${lovableApiKey}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "google/gemini-2.5-flash-lite",
+                  max_tokens: 1000,
+                  messages: [
+                    {
+                      role: "system",
+                      content: `Você é um redator de descrições de produtos para uma plataforma de simulados de certificação de TI. 
+Gere uma descrição concisa e atrativa (2-3 frases, máximo 300 caracteres) para o produto/simulado baseado no conteúdo do syllabus.
+A descrição deve mencionar os principais tópicos cobertos e o público-alvo.
+Retorne APENAS o texto da descrição, sem aspas ou formatação.`
+                    },
+                    {
+                      role: "user",
+                      content: `Gere uma descrição para o simulado baseado neste syllabus:\n\n${syllabusContent.substring(0, 5000)}`
+                    }
+                  ],
+                }),
+              }
+            );
+            if (descResponse.ok) {
+              const descData = await descResponse.json();
+              productDescription = descData.choices?.[0]?.message?.content?.trim() || null;
+              if (productDescription) {
+                sendEvent(controller, "progress", { message: `✅ Descrição gerada!` });
+              }
+            }
+          } catch (e) {
+            sendEvent(controller, "progress", { message: "⚠️ Não foi possível gerar descrição" });
+          }
+        }
+
         // Clean up file
         await adminClient.storage.from("admin-uploads").remove([filePath]);
 
         // Send final result
-        sendEvent(controller, "done", { questions, topics: topics || [] });
+        sendEvent(controller, "done", { questions, topics: topics || [], productDescription });
         controller.close();
 
       } catch (e) {
