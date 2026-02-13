@@ -51,10 +51,8 @@ const Catalog = () => {
         // Count questions per category using head:true count
         await Promise.all(
           Array.from(categoryTopics.entries()).map(async ([catId, topicIds]) => {
-            const { count } = await (supabase.from as any)('questions')
-              .select('id', { count: 'exact', head: true })
-              .in('topic_id', topicIds);
-            if (count !== null) categoryQuestionCount.set(catId, count);
+            const { data: count } = await (supabase.rpc as any)('count_questions_by_topics', { topic_ids: topicIds });
+            if (count !== null) categoryQuestionCount.set(catId, Number(count));
           })
         );
       }

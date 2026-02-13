@@ -581,6 +581,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_questions_by_topics: {
+        Args: { topic_ids: string[] }
+        Returns: number
+      }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {

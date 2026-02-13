@@ -33,16 +33,13 @@ const ProductDetails = () => {
         queryKey: ['product-question-count', product?.category_id],
         enabled: !!product?.category_id,
         queryFn: async () => {
-            const { count, error } = await (supabase.from as any)('questions')
-                .select('id', { count: 'exact', head: true })
-                .in('topic_id', 
-                    (await (supabase.from as any)('topics')
-                        .select('id')
-                        .eq('category_id', product.category_id)
-                    ).data?.map((t: any) => t.id) || []
-                );
-            if (error) return null;
-            return count;
+            const { data: topicsData } = await (supabase.from as any)('topics')
+                .select('id')
+                .eq('category_id', product.category_id);
+            const topicIds = topicsData?.map((t: any) => t.id) || [];
+            if (topicIds.length === 0) return 0;
+            const { data: count } = await (supabase.rpc as any)('count_questions_by_topics', { topic_ids: topicIds });
+            return count !== null ? Number(count) : null;
         }
     });
 

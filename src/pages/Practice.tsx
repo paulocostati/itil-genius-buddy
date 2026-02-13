@@ -144,9 +144,14 @@ export default function Practice() {
       }
 
       if (countMap.size === 0) {
-        const { data: allQ, error: qError } = await supabase.from('questions').select('topic_id');
-        if (!qError && allQ) {
-          allQ.forEach(q => countMap.set(q.topic_id, (countMap.get(q.topic_id) || 0) + 1));
+        // Use RPC to count questions per topic
+        const topicIdsList = topicsData?.map((t: any) => t.id) || [];
+        if (topicIdsList.length > 0) {
+          // Count individually per topic
+          for (const tid of topicIdsList) {
+            const { data: cnt } = await (supabase.rpc as any)('count_questions_by_topics', { topic_ids: [tid] });
+            if (cnt !== null) countMap.set(tid, Number(cnt));
+          }
         }
       }
 
@@ -201,48 +206,53 @@ export default function Practice() {
 
     setLoadingQuestions(true);
     try {
-      const { data, error } = await supabase
-        .from('questions')
-        .select('*')
-        .in('topic_id', Array.from(selectedTopics))
-        .in('question_type', Array.from(selectedTypes));
+      // Create practice session via edge function (server-side question selection)
+      const { data: examResult, error: examError } = await supabase.functions.invoke('start-exam', {
+        body: {
+          is_practice: true,
+          topic_ids: Array.from(selectedTopics),
+          question_types: Array.from(selectedTypes),
+          question_count: questionCount[0],
+        },
+      });
 
-      if (error) throw error;
+      if (examError) throw new Error(examError.message);
+      if (examResult?.error) throw new Error(examResult.error);
 
-      if (!data || data.length === 0) {
+      const examId = examResult.exam_id;
+      setPracticeExamId(examId);
+
+      // Now load questions via exam_questions join (RLS allows since they're in user's exam)
+      const { data: eqData, error: eqError } = await supabase
+        .from('exam_questions')
+        .select('id, question_id, question_order, questions(id, statement, option_a, option_b, option_c, option_d, option_e, correct_option, explanation, question_type, topic_id)')
+        .eq('exam_id', examId)
+        .order('question_order');
+
+      if (eqError) throw eqError;
+
+      if (!eqData || eqData.length === 0) {
         toast.info("Nenhuma questão encontrada com esses filtros.");
         setLoadingQuestions(false);
         return;
       }
 
-      const shuffled = data.sort(() => Math.random() - 0.5).slice(0, questionCount[0]);
+      // Map to PracticeQuestion format
+      const practiceQuestions: PracticeQuestion[] = eqData.map((eq: any) => ({
+        id: eq.questions.id,
+        statement: eq.questions.statement,
+        option_a: eq.questions.option_a,
+        option_b: eq.questions.option_b,
+        option_c: eq.questions.option_c,
+        option_d: eq.questions.option_d,
+        option_e: eq.questions.option_e,
+        correct_option: eq.questions.correct_option,
+        explanation: eq.questions.explanation,
+        question_type: eq.questions.question_type,
+        topic_id: eq.questions.topic_id,
+      }));
 
-      // Save practice session to DB
-      let examId: string | null = null;
-      if (user) {
-        const { data: exam, error: examError } = await (supabase.from as any)('exams')
-          .insert({
-            user_id: user.id,
-            total_questions: shuffled.length,
-            is_practice: true,
-            is_demo: false,
-          })
-          .select()
-          .single();
-
-        if (!examError && exam) {
-          examId = exam.id;
-          const examQuestions = shuffled.map((q, i) => ({
-            exam_id: exam.id,
-            question_id: q.id,
-            question_order: i + 1,
-          }));
-          await supabase.from('exam_questions').insert(examQuestions);
-        }
-      }
-
-      setPracticeExamId(examId);
-      setQuestions(shuffled);
+      setQuestions(practiceQuestions);
       setCurrentIndex(0);
       setStats({ correct: 0, wrong: 0 });
       setTopicPerformance({});

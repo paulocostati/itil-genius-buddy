@@ -184,44 +184,12 @@ export default function Exam() {
     else toast.info("Finalizando exame...");
 
     try {
-      const questionIds = questions.map(q => q.question_id);
-      const { data: correctData } = await supabase
-        .from('questions')
-        .select('id, correct_option')
-        .in('id', questionIds);
+      const { data, error } = await supabase.functions.invoke('grade-exam', {
+        body: { exam_id: examId, answers },
+      });
 
-      const correctMap = new Map<string, string>();
-      correctData?.forEach((q: any) => correctMap.set(q.id, q.correct_option));
-
-      let score = 0;
-      const updates = [];
-
-      for (const q of questions) {
-        const selected = answers[q.id] || null;
-        const correct = correctMap.get(q.question_id);
-        // For multi_select, compare sorted characters
-        const isCorrect = selected && correct
-          ? selected.split('').sort().join('') === correct.split('').sort().join('')
-          : selected === correct;
-        if (isCorrect) score++;
-
-        updates.push(
-          supabase
-            .from('exam_questions')
-            .update({ is_correct: isCorrect, selected_option: selected })
-            .eq('id', q.id)
-        );
-      }
-
-      await Promise.all(updates);
-      await supabase
-        .from('exams')
-        .update({
-          completed: true,
-          score,
-          finished_at: new Date().toISOString()
-        })
-        .eq('id', examId!);
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
 
       navigate(`/result/${examId}`, { replace: true });
     } catch (e) {
