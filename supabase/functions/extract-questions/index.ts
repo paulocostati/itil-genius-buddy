@@ -98,7 +98,7 @@ Para cada questão, retorne um objeto JSON com os campos:
 - option_b: texto da alternativa B  
 - option_c: texto da alternativa C
 - option_d: texto da alternativa D
-- correct_option: letra da resposta correta (a, b, c ou d) em minúscula
+- correct_option: letra da resposta correta em MAIÚSCULA (A, B, C ou D)
 - explanation: explicação da resposta (se disponível no PDF, senão deixe string vazia)
 - question_type: "standard"
 - topic_id: o ID do tópico mais adequado da lista abaixo, ou null se não conseguir mapear
@@ -108,7 +108,7 @@ ${topicsList}
 
 IMPORTANTE:
 - Extraia TODAS as questões do documento
-- A letra da resposta correta deve ser minúscula (a, b, c ou d)
+- A letra da resposta correta DEVE ser MAIÚSCULA (A, B, C ou D)
 - Mantenha o texto original das questões e alternativas
 - Se o documento tiver gabarito separado, use-o para preencher correct_option`;
 
