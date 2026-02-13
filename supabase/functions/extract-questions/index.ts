@@ -57,7 +57,7 @@ serve(async (req) => {
       });
     }
 
-    const { filePath } = await req.json();
+    const { filePath, categoryId } = await req.json();
 
     // Download the PDF from storage
     const { data: fileData, error: fileError } = await adminClient.storage
@@ -82,8 +82,12 @@ serve(async (req) => {
     }
     const base64 = btoa(binary);
 
-    // Fetch existing topics for mapping
-    const { data: topics } = await adminClient.from("topics").select("id, name, area");
+    // Fetch existing topics for mapping (filtered by category if provided)
+    let topicsQuery = adminClient.from("topics").select("id, name, area");
+    if (categoryId && categoryId !== 'all') {
+      topicsQuery = topicsQuery.eq("category_id", categoryId);
+    }
+    const { data: topics } = await topicsQuery;
 
     const topicsList = (topics || [])
       .map((t: any) => `- ID: ${t.id} | Nome: ${t.name} | Área: ${t.area}`)
