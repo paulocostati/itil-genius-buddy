@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.notify_welcome_email() CASCADE;
