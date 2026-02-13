@@ -17,9 +17,15 @@ interface ExamQuestion {
     statement: string;
     option_a: string;
     option_b: string;
-    option_c: string;
-    option_d: string;
+    option_c: string | null;
+    option_d: string | null;
     option_e: string | null;
+    statement_pt: string | null;
+    option_a_pt: string | null;
+    option_b_pt: string | null;
+    option_c_pt: string | null;
+    option_d_pt: string | null;
+    option_e_pt: string | null;
     question_type: string;
     topics: {
       name: string;
@@ -38,6 +44,7 @@ export default function Exam() {
 
   // UI State
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [examLang, setExamLang] = useState<'en' | 'pt'>('en');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -101,7 +108,7 @@ export default function Exam() {
       // 3. Fetch Questions
       const { data: qData, error: qError } = await supabase
         .from('exam_questions')
-        .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d, option_e, question_type, topics(name))')
+        .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d, option_e, statement_pt, option_a_pt, option_b_pt, option_c_pt, option_d_pt, option_e_pt, question_type, topics(name))')
         .eq('exam_id', examId!)
         .order('question_order');
 
@@ -149,7 +156,8 @@ export default function Exam() {
     }
   }
 
-  const handleStartExam = async () => {
+  const handleStartExam = async (lang: 'en' | 'pt') => {
+    setExamLang(lang);
     setStarted(true);
     const now = new Date().toISOString();
     await supabase.from('exams').update({ started_at: now }).eq('id', examId!);
@@ -240,17 +248,27 @@ export default function Exam() {
   const current = questions[currentIndex];
   if (!current) return <div className="p-8 text-center">Questão não encontrada</div>;
 
+  // Helper to get text in selected language
+  const q = current.questions;
+  const getText = (field: string) => {
+    if (examLang === 'pt') {
+      const ptVal = (q as any)[`${field}_pt`];
+      if (ptVal) return ptVal;
+    }
+    return (q as any)[field];
+  };
+
   const currentTopicName = current?.questions?.topics?.name || '';
   const prevTopicName = currentIndex > 0 ? questions[currentIndex - 1]?.questions?.topics?.name || '' : '';
   const showTopicHeader = currentTopicName !== prevTopicName;
 
   const answeredCount = Object.keys(answers).length;
   const optionKeys = ['A', 'B', 'C', 'D'];
-  if (current.questions.option_e) optionKeys.push('E');
+  if (q.option_e || (q as any).option_e_pt) optionKeys.push('E');
   const options = optionKeys.map(key => ({
     key,
     label: key,
-    text: (current.questions as any)[`option_${key.toLowerCase()}`]
+    text: getText(`option_${key.toLowerCase()}`)
   })).filter(opt => opt.text);
 
   const minutes = timeLeft !== null ? Math.floor(timeLeft / 60) : 0;
@@ -335,7 +353,7 @@ export default function Exam() {
               </span>
             </div>
             <p className="text-base md:text-lg leading-relaxed font-medium mb-8 text-foreground">
-              {current.questions.statement}
+              {getText('statement')}
             </p>
             <div className="space-y-3">
               {options.map(opt => {
