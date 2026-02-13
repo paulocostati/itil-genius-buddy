@@ -80,7 +80,9 @@ export default function Exam() {
             *,
             product:products (
                 title,
-                duration_minutes
+                time_limit_minutes,
+                passing_score,
+                question_count
             )
         `)
         .eq('id', examId!)
@@ -223,8 +225,9 @@ export default function Exam() {
     return (
       <ExamIntro
         examTitle={examData.product?.title}
-        durationMinutes={examData.product?.duration_minutes}
-        totalQuestions={questions.length}
+        durationMinutes={examData.product?.time_limit_minutes}
+        totalQuestions={examData.product?.question_count || questions.length}
+        passPercentage={examData.product?.passing_score}
         onStart={handleStartExam}
       />
     );
