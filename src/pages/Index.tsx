@@ -60,7 +60,7 @@ export default function Index() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Tagline bar */}
       <div className="flex items-center justify-between px-4 md:px-6 py-2.5 container border-b border-border">
-        <span className="text-[10px] tracking-[0.25em] uppercase text-dim">
+        <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
           Plataforma Estratégica de Simulação para Certificações
         </span>
         <button className="flex items-center gap-1.5 text-[10px] tracking-wider uppercase text-dim opacity-60 hover:opacity-100 transition-opacity">
@@ -76,7 +76,7 @@ export default function Index() {
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/[0.08]">
                 <span className="text-[11px] font-semibold tracking-[0.15em] uppercase text-primary">ITIL 4 Foundation</span>
                 <span className="text-[10px] text-dim">•</span>
-                <span className="text-[10px] tracking-wider uppercase text-dim">Certificação Principal</span>
+                <span className="text-[10px] tracking-wider uppercase text-muted-foreground">Certificação Principal</span>
               </div>
               <h1 className="text-4xl md:text-[3.6rem] leading-[1.04] font-extrabold tracking-tight">
                 <span className="text-primary">ITIL 4</span> exige{" "}
@@ -86,7 +86,7 @@ export default function Index() {
               <p className="text-lg leading-relaxed text-foreground/80">
                 Simulações estruturadas com base no peso oficial do exame para profissionais que querem aprovação com precisão.
               </p>
-              <p className="text-sm text-dim">
+              <p className="text-sm text-muted-foreground">
                 Inclui acesso às certificações AZ-900 e AI-900.
               </p>
               <div className="flex items-center gap-6 pt-4">
@@ -107,7 +107,7 @@ export default function Index() {
                 <div className="absolute inset-0 rounded-full bg-primary/20 blur-3xl scale-125" />
                 <img src={itil4Badge} alt="ITIL 4 Foundation Certified by PeopleCert" className="relative h-64 w-64 object-contain drop-shadow-2xl" />
               </div>
-              <p className="text-xs text-dim mt-4 tracking-wider uppercase text-center">Certificação oficial by PeopleCert</p>
+              <p className="text-xs text-muted-foreground mt-4 tracking-wider uppercase text-center">Certificação oficial by PeopleCert</p>
             </div>
 
             {/* Mockup */}
