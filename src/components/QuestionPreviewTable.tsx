@@ -65,8 +65,9 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
   }
 
   async function handleImport() {
+    const validTopicIds = new Set(topics.map(t => t.id));
     const toImport = questions.filter((_, i) => selected.has(i));
-    const valid = toImport.filter(q => q.topic_id && q.statement && q.correct_option);
+    const valid = toImport.filter(q => q.topic_id && validTopicIds.has(q.topic_id) && q.statement && q.correct_option);
 
     if (valid.length === 0) {
       toast.error("Nenhuma questão válida para importar. Verifique tópicos e campos obrigatórios.");
@@ -120,8 +121,9 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
     }
   }
 
+  const validTopicIdsForCount = new Set(topics.map(t => t.id));
   const selectedCount = [...selected].filter(i => i < questions.length).length;
-  const validCount = questions.filter((q, i) => selected.has(i) && q.topic_id && q.statement && q.correct_option).length;
+  const validCount = questions.filter((q, i) => selected.has(i) && q.topic_id && validTopicIdsForCount.has(q.topic_id) && q.statement && q.correct_option).length;
 
   return (
     <div className="space-y-4">
@@ -166,7 +168,7 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
                   <CardTitle className="text-sm font-medium line-clamp-2">{q.statement.substring(0, 120)}...</CardTitle>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {q.topic_id ? (
+                  {q.topic_id && validTopicIdsForCount.has(q.topic_id) ? (
                     <Badge variant="outline" className="text-xs bg-green-50 text-green-700">Mapeada</Badge>
                   ) : (
                     <Badge variant="destructive" className="text-xs">Sem tópico</Badge>
