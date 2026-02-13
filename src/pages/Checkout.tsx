@@ -123,12 +123,14 @@ export default function Checkout() {
     try {
       setLoading(true);
       const finalPrice = getDiscountedPrice();
+      const isFree = finalPrice === 0;
+
       const { data, error } = await (supabase.from as any)('orders')
         .insert({
           user_id: user.id,
           product_id: product.id,
           amount_cents: finalPrice,
-          status: 'PENDING',
+          status: isFree ? 'APPROVED' : 'PENDING',
           customer_email: user.email
         })
         .select()
@@ -139,6 +141,21 @@ export default function Checkout() {
       // Increment coupon used_count
       if (appliedCoupon) {
         await (supabase.rpc as any)('increment_coupon_usage', { _code: appliedCoupon.code }).catch(() => {});
+      }
+
+      // If 100% discount, grant entitlement immediately via edge function
+      if (isFree) {
+        const { data: grantData, error: grantError } = await supabase.functions.invoke('grant-free-access', {
+          body: { order_id: data.id },
+        });
+        if (grantError || grantData?.error) {
+          console.error('Grant access error:', grantError || grantData?.error);
+          toast.error('Erro ao liberar acesso. Contate o suporte.');
+        } else {
+          toast.success("Acesso liberado! Cupom 100% aplicado.");
+        }
+        navigate(`/product/${product.slug}`);
+        return;
       }
 
       setOrderId(data.id);
@@ -250,7 +267,10 @@ export default function Checkout() {
           <CardFooter>
             <Button className="w-full" size="lg" onClick={createOrder} disabled={loading}>
               {loading ? <Loader2 className="mr-2 animate-spin" /> : null}
-              Confirmar e Pagar com Pix {appliedCoupon ? formatPrice(getDiscountedPrice()) : ''}
+              {getDiscountedPrice() === 0
+                ? 'Liberar Acesso Grátis'
+                : `Confirmar e Pagar com Pix ${appliedCoupon ? formatPrice(getDiscountedPrice()) : ''}`
+              }
             </Button>
           </CardFooter>
         </Card>
