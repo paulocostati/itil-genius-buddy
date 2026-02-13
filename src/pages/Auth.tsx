@@ -4,7 +4,8 @@ import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BookOpen, Mail, Lock, User, Code } from 'lucide-react';
+import { BookOpen, Mail, Lock, User } from 'lucide-react';
+import logoExamtis from '@/assets/logo-examtis.png';
 import { toast } from 'sonner';
 
 export default function Auth() {
@@ -60,10 +61,10 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center gradient-hero p-4">
       <Card className="w-full max-w-md animate-scale-in border-0 shadow-2xl">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-            <Code className="h-7 w-7" />
+          <div className="mx-auto mb-4">
+            <img src={logoExamtis} alt="EXAMTIS" className="h-10 mx-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold">Examtis</CardTitle>
+          <CardTitle className="text-2xl font-bold">EXAMTIS</CardTitle>
           <CardDescription>{isSignUp ? 'Crie sua conta para começar' : 'Entre para continuar seus estudos'}</CardDescription>
         </CardHeader>
         <CardContent>

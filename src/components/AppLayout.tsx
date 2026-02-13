@@ -8,10 +8,11 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X, User, LogOut, Code, ChevronDown } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import logoExamtis from "@/assets/logo-examtis.png";
 
 const Header = () => {
     const { user } = useAuth();
@@ -41,9 +42,8 @@ const Header = () => {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between">
                 <div className="flex items-center gap-8">
-                    <Link to="/" className="flex items-center gap-2 text-xl font-bold text-primary">
-                        <Code className="h-6 w-6" />
-                        <span>Examtis</span>
+                    <Link to="/" className="flex items-center gap-2">
+                        <img src={logoExamtis} alt="EXAMTIS" className="h-8" />
                     </Link>
                     <nav className="hidden md:flex items-center gap-6">
                         {navLinks.map((link) => (
@@ -184,9 +184,8 @@ const Footer = () => (
         <div className="container px-4 md:px-6">
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
                 <div>
-                    <div className="flex items-center gap-2 text-xl font-bold text-primary mb-4">
-                        <Code className="h-6 w-6" />
-                        <span>Examtis</span>
+                    <div className="flex items-center gap-2 mb-4">
+                        <img src={logoExamtis} alt="EXAMTIS" className="h-8" />
                     </div>
                     <p className="text-sm text-muted-foreground">
                         A melhor plataforma de simulados para certificações de TI. Prepare-se com confiança.
@@ -211,7 +210,7 @@ const Footer = () => (
                 <div>
                     <h3 className="font-semibold mb-4">Legal</h3>
                     <p className="text-sm text-muted-foreground">
-                        © 2024 Examtis. Todos os direitos reservados.
+                        © 2025 EXAMTIS. Todos os direitos reservados.
                     </p>
                 </div>
             </div>
