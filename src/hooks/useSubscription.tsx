@@ -23,11 +23,24 @@ export function useSubscription() {
           return;
         }
 
-        // Check active subscription
+        // Check active subscription or pending_activation (user has paid but not activated yet)
         (supabase.rpc as any)('has_active_subscription', { _user_id: user.id })
           .then(({ data }: { data: boolean }) => {
-            setHasAccess(!!data);
-            setLoading(false);
+            if (data) {
+              setHasAccess(true);
+              setLoading(false);
+              return;
+            }
+            // Also check pending_activation subscriptions
+            (supabase.from as any)('user_subscriptions')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('payment_status', 'pending_activation')
+              .limit(1)
+              .then(({ data: pendingSubs }: { data: any[] }) => {
+                setHasAccess(!!pendingSubs?.length || false);
+                setLoading(false);
+              });
           });
       });
   }, [user]);
