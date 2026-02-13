@@ -52,28 +52,17 @@ const faqs = [
 const fmt = (cents: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
-// Color tokens
-const c = {
-  bg: "hsl(222,30%,5%)",
-  surface: "hsl(222,25%,9%)",
-  border: "hsl(220,20%,14%)",
-  text: "hsl(210,20%,95%)",
-  textMuted: "hsl(215,15%,52%)",
-  textDim: "hsl(215,15%,38%)",
-  accent: "hsl(215,70%,55%)",
-};
-
 export default function Index() {
   const { user } = useAuth();
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: c.bg, color: c.text }}>
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Tagline bar */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 container" style={{ borderBottom: `1px solid ${c.border}` }}>
-        <span className="text-[10px] tracking-[0.25em] uppercase" style={{ color: c.textDim }}>
+      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 container border-b border-border">
+        <span className="text-[10px] tracking-[0.25em] uppercase text-dim">
           Plataforma Estratégica de Simulação para Certificações
         </span>
-        <button className="flex items-center gap-1.5 text-[10px] tracking-wider uppercase opacity-40 hover:opacity-70 transition-opacity" style={{ color: c.textDim }}>
+        <button className="flex items-center gap-1.5 text-[10px] tracking-wider uppercase text-dim opacity-60 hover:opacity-100 transition-opacity">
           <Globe className="h-3 w-3" /> EN
         </button>
       </div>
@@ -85,19 +74,19 @@ export default function Index() {
             <div className="space-y-8 max-w-xl">
               <h1 className="text-4xl md:text-[3.4rem] leading-[1.06] font-extrabold tracking-tight">
                 Certificação não é tentativa. É{" "}
-                <span style={{ color: c.accent }}>estratégia.</span>
+                <span className="text-primary">estratégia.</span>
               </h1>
-              <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
+              <p className="text-lg leading-relaxed text-muted-foreground">
                 Simulações estruturadas com base no peso oficial do exame ITIL 4 para profissionais que querem aprovação com precisão.
               </p>
-              <p className="text-sm" style={{ color: c.textDim }}>
+              <p className="text-sm text-dim">
                 Inclui acesso às certificações AZ-900 e AI-900.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide" style={{ background: c.accent, color: "#fff" }} asChild>
+                <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide" asChild>
                   <a href="#plans">Acessar preparação estratégica</a>
                 </Button>
-                <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide" style={{ color: c.textMuted }} asChild>
+                <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide text-muted-foreground" asChild>
                   <a href="#methodology">Entender a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
                 </Button>
               </div>
@@ -105,12 +94,12 @@ export default function Index() {
 
             {/* Mockup */}
             <div className="hidden lg:block">
-              <div className="rounded-2xl p-8 shadow-2xl" style={{ background: c.surface, border: `1px solid ${c.border}`, boxShadow: `0 25px 60px -12px ${c.accent}08` }}>
+              <div className="rounded-2xl p-8 shadow-2xl bg-card border border-border">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[hsl(0,50%,50%)]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[hsl(40,70%,50%)]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[hsl(130,45%,45%)]" />
-                  <span className="ml-3 text-[10px] tracking-wider uppercase" style={{ color: c.textDim }}>ITIL 4 Foundation — Dashboard Estratégico</span>
+                  <div className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-warning/60" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
+                  <span className="ml-3 text-[10px] tracking-wider uppercase text-dim">ITIL 4 Foundation — Dashboard Estratégico</span>
                 </div>
                 <div className="space-y-4">
                   {[
@@ -119,65 +108,65 @@ export default function Index() {
                     { domain: "Princípios", weight: 14, score: 62 },
                     { domain: "Governança", weight: 10, score: 91 },
                   ].map((d) => (
-                    <div key={d.domain} className="p-3 rounded-lg" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+                    <div key={d.domain} className="p-3 rounded-lg bg-background border border-border">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium">{d.domain} <span style={{ color: c.textDim }}>({d.weight}%)</span></span>
-                        <span className="text-sm font-bold" style={{ color: d.score >= 80 ? "hsl(150,50%,50%)" : d.score >= 70 ? c.accent : "hsl(35,80%,55%)" }}>{d.score}%</span>
+                        <span className="text-xs font-medium">{d.domain} <span className="text-dim">({d.weight}%)</span></span>
+                        <span className={`text-sm font-bold ${d.score >= 80 ? 'text-success' : d.score >= 70 ? 'text-primary' : 'text-warning'}`}>{d.score}%</span>
                       </div>
-                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: c.border }}>
-                        <div className="h-full rounded-full transition-all" style={{ width: `${d.score}%`, background: d.score >= 80 ? "hsl(150,50%,50%)" : d.score >= 70 ? c.accent : "hsl(35,80%,55%)" }} />
+                      <div className="h-1.5 rounded-full overflow-hidden bg-secondary">
+                        <div className={`h-full rounded-full transition-all ${d.score >= 80 ? 'bg-success' : d.score >= 70 ? 'bg-primary' : 'bg-warning'}`} style={{ width: `${d.score}%` }} />
                       </div>
                     </div>
                   ))}
                   <div className="flex gap-3 pt-2">
-                    <div className="flex-1 h-9 rounded-lg flex items-center justify-center text-xs font-semibold" style={{ background: c.accent, color: "#fff" }}>Novo Simulado</div>
-                    <div className="flex-1 h-9 rounded-lg flex items-center justify-center text-xs" style={{ background: c.border, color: c.textMuted }}>Relatório Completo</div>
+                    <div className="flex-1 h-9 rounded-lg flex items-center justify-center text-xs font-semibold bg-primary text-primary-foreground">Novo Simulado</div>
+                    <div className="flex-1 h-9 rounded-lg flex items-center justify-center text-xs bg-secondary text-muted-foreground">Relatório Completo</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] rounded-full blur-[140px] -z-0" style={{ background: `${c.accent}06` }} />
+        <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] rounded-full blur-[140px] -z-0 bg-primary/[0.03]" />
       </section>
 
       {/* Positioning */}
-      <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section className="py-28 border-t border-border">
         <div className="container px-4 md:px-6 max-w-3xl mx-auto text-center space-y-6">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Não é um banco de questões.</h2>
-          <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
+          <p className="text-lg leading-relaxed text-muted-foreground">
             A maioria estuda em volume. Poucos estudam com direcionamento.
           </p>
-          <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
+          <p className="text-lg leading-relaxed text-muted-foreground">
             A EXAMTIS organiza simulados com base na estrutura oficial do exame, permitindo foco real nas áreas com maior impacto na sua aprovação.
           </p>
         </div>
       </section>
 
       {/* Problema Real */}
-      <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section className="py-28 border-t border-border">
         <div className="container px-4 md:px-6 max-w-2xl mx-auto text-center space-y-6">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">O que normalmente acontece</h2>
-          <div className="space-y-3 text-lg" style={{ color: c.textMuted }}>
+          <div className="space-y-3 text-lg text-muted-foreground">
             <p>Você resolve centenas de questões.</p>
             <p>Assiste aulas.</p>
             <p>Revisa PDFs.</p>
             <p className="pt-2">Mas não sabe onde realmente está perdendo pontos.</p>
           </div>
-          <p className="text-xl font-semibold pt-4" style={{ color: c.accent }}>
+          <p className="text-xl font-semibold pt-4 text-primary">
             "Sem diagnóstico, não existe estratégia."
           </p>
         </div>
       </section>
 
       {/* Methodology */}
-      <section id="methodology" className="py-28 scroll-mt-20" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section id="methodology" className="py-28 scroll-mt-20 border-t border-border">
         <div className="container px-4 md:px-6 max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14">Como a EXAMTIS funciona</h2>
           <div className="space-y-0">
             {methodology.map((item, i) => (
-              <div key={i} className="flex items-center gap-6 py-5" style={{ borderBottom: `1px solid ${c.border}` }}>
-                <span className="text-sm font-light tabular-nums w-8" style={{ color: c.textDim }}>0{i + 1}</span>
+              <div key={i} className="flex items-center gap-6 py-5 border-b border-border">
+                <span className="text-sm font-light tabular-nums w-8 text-dim">0{i + 1}</span>
                 <span className="text-lg font-medium">{item}</span>
               </div>
             ))}
@@ -186,9 +175,9 @@ export default function Index() {
       </section>
 
       {/* Storytelling */}
-      <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section className="py-28 border-t border-border">
         <div className="container px-4 md:px-6 max-w-2xl mx-auto text-center space-y-4">
-          <p className="text-xl md:text-2xl leading-relaxed font-light" style={{ color: c.textMuted }}>
+          <p className="text-xl md:text-2xl leading-relaxed font-light text-muted-foreground">
             Você não precisa estudar mais.
           </p>
           <p className="text-xl md:text-2xl leading-relaxed font-semibold">
@@ -198,11 +187,11 @@ export default function Index() {
       </section>
 
       {/* Plans */}
-      <section id="plans" className="py-28 scroll-mt-20" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section id="plans" className="py-28 scroll-mt-20 border-t border-border">
         <div className="container px-4 md:px-6">
           <div className="text-center mb-6 max-w-xl mx-auto">
             <p className="text-xl font-semibold tracking-tight">Reprovar custa mais do que se preparar estrategicamente.</p>
-            <p className="text-sm mt-2" style={{ color: c.textDim }}>
+            <p className="text-sm mt-2 text-dim">
               Taxa de reaplicação, tempo perdido e impacto profissional podem ultrapassar R$ 800.
             </p>
           </div>
@@ -214,43 +203,35 @@ export default function Index() {
             {plans.map((plan) => (
               <div
                 key={plan.tier}
-                className="relative flex flex-col rounded-2xl overflow-hidden"
-                style={{
-                  background: plan.popular ? `linear-gradient(180deg, ${c.accent}18 0%, ${c.surface} 40%)` : c.surface,
-                  border: `1px solid ${plan.popular ? c.accent + "40" : c.border}`,
-                  boxShadow: plan.popular ? `0 0 40px ${c.accent}08` : "none",
-                }}
+                className={`relative flex flex-col rounded-2xl overflow-hidden bg-card border ${plan.popular ? 'border-primary/40 shadow-[0_0_40px_hsl(215_70%_55%/0.08)]' : 'border-border'}`}
+                style={plan.popular ? { background: 'linear-gradient(180deg, hsl(215 70% 55% / 0.08) 0%, hsl(var(--card)) 40%)' } : undefined}
               >
                 {plan.popular && (
                   <div className="text-center pt-3">
-                    <span className="text-[10px] font-semibold tracking-[0.2em] uppercase px-4 py-1 rounded-full" style={{ background: c.accent, color: "#fff" }}>
+                    <span className="text-[10px] font-semibold tracking-[0.2em] uppercase px-4 py-1 rounded-full bg-primary text-primary-foreground">
                       Mais Popular
                     </span>
                   </div>
                 )}
                 <div className="p-8 flex flex-col h-full">
                   <div className="text-center mb-6">
-                    <p className="text-xs font-semibold tracking-[0.2em] uppercase mb-1" style={{ color: c.textDim }}>{plan.tier}</p>
-                    <p className="text-sm mb-4" style={{ color: c.textMuted }}>{plan.days} dias</p>
+                    <p className="text-xs font-semibold tracking-[0.2em] uppercase mb-1 text-dim">{plan.tier}</p>
+                    <p className="text-sm mb-4 text-muted-foreground">{plan.days} dias</p>
                     <span className="text-4xl font-bold">{fmt(plan.price)}</span>
                   </div>
-                  <p className="text-sm text-center mb-6" style={{ color: c.textMuted }}>{plan.desc}</p>
-                  <Separator style={{ background: c.border }} className="mb-6" />
+                  <p className="text-sm text-center mb-6 text-muted-foreground">{plan.desc}</p>
+                  <Separator className="mb-6 bg-border" />
                   <ul className="space-y-3 flex-1">
                     {plan.features.map((f) => (
                       <li key={f} className="flex items-start gap-2.5 text-sm">
-                        <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: c.accent }} />
-                        <span style={{ color: c.textMuted }}>{f}</span>
+                        <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+                        <span className="text-muted-foreground">{f}</span>
                       </li>
                     ))}
                   </ul>
                   <Button
-                    className="w-full h-12 mt-8 text-sm font-semibold tracking-wide"
-                    style={{
-                      background: plan.popular ? c.accent : "transparent",
-                      color: plan.popular ? "#fff" : c.text,
-                      border: plan.popular ? "none" : `1px solid ${c.border}`,
-                    }}
+                    className={`w-full h-12 mt-8 text-sm font-semibold tracking-wide ${plan.popular ? '' : 'bg-transparent text-foreground border border-border hover:bg-secondary'}`}
+                    variant={plan.popular ? 'default' : 'outline'}
                     asChild
                   >
                     <Link to={user ? `/plans/checkout?days=${plan.days}` : `/auth?mode=signup&next=/plans/checkout?days=${plan.days}`}>
@@ -261,31 +242,31 @@ export default function Index() {
               </div>
             ))}
           </div>
-          <p className="text-center text-sm mt-8" style={{ color: c.textDim }}>
+          <p className="text-center text-sm mt-8 text-dim">
             Compra única. Ativação sob demanda. Sem renovação automática.
           </p>
         </div>
       </section>
 
       {/* Guarantee */}
-      <section className="py-20" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section className="py-20 border-t border-border">
         <div className="container px-4 md:px-6 text-center max-w-2xl mx-auto space-y-3">
           <p className="text-lg font-semibold">Garantia de satisfação de 7 dias.</p>
-          <p className="text-sm" style={{ color: c.textMuted }}>
+          <p className="text-sm text-muted-foreground">
             Se a plataforma não elevar sua confiança, devolvemos 100% do valor. Sem perguntas.
           </p>
         </div>
       </section>
 
       {/* Individual */}
-      <section className="py-24" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section className="py-24 border-t border-border">
         <div className="container px-4 md:px-6">
           <div className="flex justify-between items-end mb-10">
             <div>
               <h2 className="text-xl font-bold tracking-tight">Ou compre por simulado individual</h2>
-              <p className="text-sm mt-1" style={{ color: c.textDim }}>Prefere um simulado específico? Sem problema.</p>
+              <p className="text-sm mt-1 text-dim">Prefere um simulado específico? Sem problema.</p>
             </div>
-            <Button variant="ghost" asChild className="hidden md:inline-flex" style={{ color: c.textMuted }}>
+            <Button variant="ghost" asChild className="hidden md:inline-flex text-muted-foreground">
               <Link to="/catalog">Ver catálogo <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </div>
@@ -296,12 +277,12 @@ export default function Index() {
               { name: "Azure", sub: "AZ-900 & AI-900" },
               { name: "Scrum", sub: "PSM I & PSPO I" },
             ].map((cat) => (
-              <Link key={cat.name} to={`/catalog?search=${cat.name}`} className="group flex flex-col p-5 rounded-2xl transition-all" style={{ background: c.surface, border: `1px solid ${c.border}` }}>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 text-sm font-bold group-hover:scale-110 transition-transform" style={{ background: `${c.accent}15`, color: c.accent }}>
+              <Link key={cat.name} to={`/catalog?search=${cat.name}`} className="group flex flex-col p-5 rounded-2xl transition-all bg-card border border-border hover:border-primary/30">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 text-sm font-bold group-hover:scale-110 transition-transform bg-primary/10 text-primary">
                   {cat.name[0]}
                 </div>
                 <h3 className="font-semibold text-sm">{cat.name}</h3>
-                <p className="text-xs mt-1" style={{ color: c.textDim }}>{cat.sub}</p>
+                <p className="text-xs mt-1 text-dim">{cat.sub}</p>
               </Link>
             ))}
           </div>
@@ -309,14 +290,14 @@ export default function Index() {
       </section>
 
       {/* FAQ */}
-      <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
+      <section className="py-28 border-t border-border">
         <div className="container px-4 md:px-6 max-w-2xl mx-auto">
           <h2 className="text-2xl font-bold text-center mb-12 tracking-tight">Perguntas frequentes</h2>
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} style={{ borderColor: c.border }}>
+              <AccordionItem key={i} value={`faq-${i}`} className="border-border">
                 <AccordionTrigger className="text-left text-sm hover:no-underline">{faq.q}</AccordionTrigger>
-                <AccordionContent style={{ color: c.textMuted }}>{faq.a}</AccordionContent>
+                <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
@@ -324,15 +305,15 @@ export default function Index() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10" style={{ borderTop: `1px solid ${c.border}` }}>
+      <footer className="py-10 border-t border-border">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs font-semibold tracking-[0.2em]">EXAMTIS</p>
-            <div className="flex items-center gap-6 text-xs" style={{ color: c.textDim }}>
-              <a href="#" className="hover:text-white transition-colors">Termos</a>
-              <a href="#" className="hover:text-white transition-colors">Privacidade</a>
-              <a href="mailto:contato@examtis.com" className="hover:text-white transition-colors">Contato</a>
-              <Link to="/auth?mode=login" className="hover:text-white transition-colors">Login</Link>
+            <div className="flex items-center gap-6 text-xs text-dim">
+              <a href="#" className="hover:text-foreground transition-colors">Termos</a>
+              <a href="#" className="hover:text-foreground transition-colors">Privacidade</a>
+              <a href="mailto:contato@examtis.com" className="hover:text-foreground transition-colors">Contato</a>
+              <Link to="/auth?mode=login" className="hover:text-foreground transition-colors">Login</Link>
               <button className="flex items-center gap-1 opacity-50 hover:opacity-80 transition-opacity">
                 <Globe className="h-3 w-3" /> PT-BR
               </button>

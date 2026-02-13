@@ -210,7 +210,7 @@ export default function Checkout() {
             </div>
 
             {appliedCoupon && (
-              <div className="flex justify-between items-center py-2 border-b text-green-600">
+              <div className="flex justify-between items-center py-2 border-b text-success">
                 <span className="flex items-center gap-2">
                   <Ticket className="h-4 w-4" />
                   Cupom {appliedCoupon.code} ({appliedCoupon.discount_percent}% OFF)

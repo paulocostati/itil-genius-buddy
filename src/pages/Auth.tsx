@@ -58,8 +58,8 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-hero p-4">
-      <Card className="w-full max-w-md animate-scale-in border-0 shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md animate-scale-in border-border shadow-2xl bg-card">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto mb-4">
             <img src={logoExamtis} alt="EXAMTIS" className="h-10 mx-auto" />

@@ -250,9 +250,9 @@ export default function Exam() {
     list: { label: 'LIST', color: 'bg-accent/15 text-accent' },
     missing_word: { label: 'MW', color: 'bg-warning/15 text-warning' },
     negative: { label: 'NEG', color: 'bg-destructive/15 text-destructive' },
-    hotspot_yesno: { label: 'Y/N', color: 'bg-emerald-500/15 text-emerald-600' },
-    hotspot_complete: { label: 'COMP', color: 'bg-blue-500/15 text-blue-600' },
-    multi_select: { label: 'MULTI', color: 'bg-violet-500/15 text-violet-600' },
+    hotspot_yesno: { label: 'Y/N', color: 'bg-success/15 text-success' },
+    hotspot_complete: { label: 'COMP', color: 'bg-primary/15 text-primary' },
+    multi_select: { label: 'MULTI', color: 'bg-primary/20 text-primary' },
   };
   const badge = typeBadge[questionType] || typeBadge.standard;
 
