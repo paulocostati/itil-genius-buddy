@@ -143,7 +143,11 @@ export default function Checkout() {
 
       // Increment coupon used_count
       if (appliedCoupon) {
-        await (supabase.rpc as any)('increment_coupon_usage', { _code: appliedCoupon.code }).catch(() => {});
+        try {
+          await (supabase.rpc as any)('increment_coupon_usage', { _code: appliedCoupon.code });
+        } catch (e) {
+          console.error('Coupon increment error:', e);
+        }
       }
 
       // If 100% discount, grant entitlement immediately via edge function
