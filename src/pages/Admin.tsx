@@ -44,6 +44,8 @@ export default function Admin() {
   const [extractedTopics, setExtractedTopics] = useState<any[]>([]);
   const [importCategoryId, setImportCategoryId] = useState<string>('');
   const [categories, setCategories] = useState<{ id: string; name: string; vendors?: { name: string } }[]>([]);
+  const [extractionLogs, setExtractionLogs] = useState<string[]>([]);
+  const [questionsFound, setQuestionsFound] = useState(0);
 
   // Translation state
   const [translateCategoryId, setTranslateCategoryId] = useState<string>('');
@@ -111,7 +113,6 @@ export default function Admin() {
   async function handleExtractQuestions() {
     if (!pdfFile) return;
     
-    // Validate file size (max 20MB)
     if (pdfFile.size > 20 * 1024 * 1024) {
       toast.error("O arquivo é muito grande. O limite é 20MB.");
       return;
@@ -119,6 +120,8 @@ export default function Admin() {
     
     setExtracting(true);
     setExtractedQuestions(null);
+    setExtractionLogs([]);
+    setQuestionsFound(0);
 
     try {
       const filePath = `imports/${Date.now()}_${pdfFile.name}`;
@@ -128,11 +131,13 @@ export default function Admin() {
 
       if (uploadError) throw uploadError;
 
+      setExtractionLogs(prev => [...prev, '📤 Upload concluído. Iniciando extração...']);
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 300000); // 5 min timeout
+      const timeout = setTimeout(() => controller.abort(), 300000);
       
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-questions`, {
         method: 'POST',
@@ -146,15 +151,48 @@ export default function Admin() {
       
       clearTimeout(timeout);
 
-      if (!res.ok) {
+      if (!res.ok && !res.headers.get('content-type')?.includes('text/event-stream')) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || 'Falha na extração');
       }
 
-      const data = await res.json();
-      setExtractedQuestions(data.questions);
-      setExtractedTopics(data.topics);
-      toast.success(`${data.questions.length} questões extraídas!`);
+      // Read SSE stream
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const block of lines) {
+          if (!block.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(block.slice(6));
+            
+            if (event.type === 'progress') {
+              setExtractionLogs(prev => [...prev, event.message]);
+              if (event.questionsFound) {
+                setQuestionsFound(event.questionsFound);
+              }
+            } else if (event.type === 'done') {
+              setExtractedQuestions(event.questions);
+              setExtractedTopics(event.topics);
+              toast.success(`${event.questions.length} questões extraídas!`);
+            } else if (event.type === 'error') {
+              throw new Error(event.error);
+            }
+          } catch (parseErr: any) {
+            if (parseErr.message && !parseErr.message.includes('Unexpected')) {
+              throw parseErr;
+            }
+          }
+        }
+      }
     } catch (e: any) {
       console.error(e);
       if (e.name === 'AbortError') {
@@ -446,9 +484,23 @@ export default function Admin() {
                   )}
                 </Button>
                 {extracting && (
-                  <p className="text-xs text-muted-foreground text-center animate-pulse">
-                    A IA está analisando o PDF e extraindo as questões. Não feche esta página.
-                  </p>
+                  <div className="space-y-3">
+                    {questionsFound > 0 && (
+                      <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                        <span>📊 {questionsFound} questões encontradas</span>
+                      </div>
+                    )}
+                    <div className="bg-muted rounded-lg p-3 max-h-48 overflow-y-auto text-xs font-mono space-y-1">
+                      {extractionLogs.map((log, i) => (
+                        <p key={i} className={i === extractionLogs.length - 1 ? "text-primary font-semibold" : "text-muted-foreground"}>
+                          {log}
+                        </p>
+                      ))}
+                      {extractionLogs.length === 0 && (
+                        <p className="text-muted-foreground animate-pulse">Preparando...</p>
+                      )}
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
