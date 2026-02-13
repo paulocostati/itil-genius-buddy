@@ -118,7 +118,11 @@ export default function PlanCheckout() {
       }
 
       if (appliedCoupon) {
-        await (supabase.rpc as any)("increment_coupon_usage", { _code: appliedCoupon.code }).catch(() => {});
+        try {
+          await (supabase.rpc as any)("increment_coupon_usage", { _code: appliedCoupon.code });
+        } catch (e) {
+          console.error("Coupon increment error:", e);
+        }
       }
 
       if (isFree) {
