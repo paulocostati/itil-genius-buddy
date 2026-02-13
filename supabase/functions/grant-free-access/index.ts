@@ -46,13 +46,15 @@ serve(async (req) => {
     }
 
     // Check if entitlement already exists
-    const { data: existing } = await adminClient
+    const { data: existingList } = await adminClient
       .from("entitlements")
       .select("id")
       .eq("user_id", user.id)
       .eq("product_id", order.product_id)
       .eq("status", "ACTIVE")
-      .maybeSingle();
+      .limit(1);
+
+    const existing = existingList && existingList.length > 0;
 
     if (existing) {
       return new Response(
