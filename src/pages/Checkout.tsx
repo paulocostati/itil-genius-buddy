@@ -136,7 +136,10 @@ export default function Checkout() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase insert error:", JSON.stringify(error));
+        throw error;
+      }
 
       // Increment coupon used_count
       if (appliedCoupon) {
@@ -160,9 +163,9 @@ export default function Checkout() {
 
       setOrderId(data.id);
       toast.success("Pedido criado! Realize o pagamento.");
-    } catch (err) {
-      console.error(err);
-      toast.error("Erro ao criar pedido.");
+    } catch (err: any) {
+      console.error("Order creation error:", err);
+      toast.error(err?.message || "Erro ao criar pedido.");
     } finally {
       setLoading(false);
     }
