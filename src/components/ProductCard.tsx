@@ -31,12 +31,12 @@ export function ProductCard({ product }: ProductCardProps) {
 
     return (
         <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden border-border/50">
-            <div className="h-40 bg-muted flex items-center justify-center relative group overflow-hidden">
+            <div className="h-40 bg-muted flex items-center justify-center relative group overflow-hidden p-2">
                 {product.cover_image ? (
                     <img
                         src={product.cover_image}
                         alt={product.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                 ) : (
                     <Layers className="h-16 w-16 text-muted-foreground/30" />
