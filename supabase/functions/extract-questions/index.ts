@@ -92,25 +92,27 @@ serve(async (req) => {
     const systemPrompt = `Você é um extrator de questões de exame ITIL 4 a partir de PDFs.
 Analise o documento PDF e extraia TODAS as questões encontradas.
 
-Para cada questão, retorne um objeto JSON com os campos:
-- statement: texto completo da pergunta
-- option_a: texto da alternativa A
-- option_b: texto da alternativa B  
-- option_c: texto da alternativa C
-- option_d: texto da alternativa D
+Para cada questão, retorne um objeto JSON com TODOS estes campos preenchidos:
+- statement: texto completo da pergunta (OBRIGATÓRIO - nunca deixe vazio)
+- option_a: texto COMPLETO da alternativa A (OBRIGATÓRIO - nunca deixe vazio)
+- option_b: texto COMPLETO da alternativa B (OBRIGATÓRIO - nunca deixe vazio)
+- option_c: texto COMPLETO da alternativa C (OBRIGATÓRIO - nunca deixe vazio)
+- option_d: texto COMPLETO da alternativa D (OBRIGATÓRIO - nunca deixe vazio)
 - correct_option: letra da resposta correta em MAIÚSCULA (A, B, C ou D)
 - explanation: explicação da resposta (se disponível no PDF, senão deixe string vazia)
-- question_type: "standard"
+- question_type: "standard" (ou "list" se pedir 2 itens corretos, "missing_word" se tiver lacuna, "negative" se perguntar o que NÃO é correto)
 - topic_id: o ID do tópico mais adequado da lista abaixo, ou null se não conseguir mapear
 
 Tópicos disponíveis:
 ${topicsList}
 
-IMPORTANTE:
-- Extraia TODAS as questões do documento
+REGRAS CRÍTICAS:
+- Extraia TODAS as questões do documento, sem exceção
+- TODOS os campos option_a, option_b, option_c, option_d DEVEM conter o texto real das alternativas do PDF
 - A letra da resposta correta DEVE ser MAIÚSCULA (A, B, C ou D)
-- Mantenha o texto original das questões e alternativas
-- Se o documento tiver gabarito separado, use-o para preencher correct_option`;
+- Mantenha o texto original exato das questões e alternativas
+- Se o documento tiver gabarito/respostas separadas, use para preencher correct_option e explanation
+- NÃO retorne alternativas vazias - cada questão DEVE ter 4 alternativas com texto`;
 
     // Call Lovable AI with the PDF
     const aiResponse = await fetch(
