@@ -43,9 +43,9 @@ const ProductDetails = () => {
         }
     });
 
-    // Check if user has active entitlement
+    // Check if user has active entitlement for this product
     const { data: entitlement } = useQuery({
-        queryKey: ['entitlement', product?.id],
+        queryKey: ['entitlement', product?.id, user?.id],
         enabled: !!product?.id && !!user,
         queryFn: async () => {
             const { data } = await (supabase.from as any)('entitlements')
@@ -57,6 +57,18 @@ const ProductDetails = () => {
             return data;
         }
     });
+
+    // Check if user has active subscription (combo/plan)
+    const { data: hasSubscription } = useQuery({
+        queryKey: ['active-subscription', user?.id],
+        enabled: !!user,
+        queryFn: async () => {
+            const { data } = await (supabase.rpc as any)('has_active_subscription', { _user_id: user!.id });
+            return !!data;
+        }
+    });
+
+    const hasAccess = !!entitlement || !!hasSubscription;
 
     const formatPrice = (cents: number) => {
         return new Intl.NumberFormat("pt-BR", {
@@ -167,14 +179,23 @@ const ProductDetails = () => {
                 <div className="space-y-6">
                     <Card className="border-2 border-primary/20 sticky top-24">
                         <CardHeader className="bg-primary/5 pb-4">
-                            <span className="text-muted-foreground text-sm font-medium uppercase tracking-wider">Investimento</span>
-                            <div className="flex items-baseline gap-1 mt-1">
-                                <span className="text-3xl font-bold">{formatPrice(product.price_cents)}</span>
-                                <span className="text-sm text-muted-foreground">/ acesso vitalício</span>
-                            </div>
+                            {hasAccess ? (
+                                <>
+                                    <span className="text-sm font-medium uppercase tracking-wider text-green-500">✓ Acesso Liberado</span>
+                                    <p className="text-sm text-muted-foreground mt-1">Você já possui acesso a este simulado</p>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="text-muted-foreground text-sm font-medium uppercase tracking-wider">Investimento</span>
+                                    <div className="flex items-baseline gap-1 mt-1">
+                                        <span className="text-3xl font-bold">{formatPrice(product.price_cents)}</span>
+                                        <span className="text-sm text-muted-foreground">/ acesso vitalício</span>
+                                    </div>
+                                </>
+                            )}
                         </CardHeader>
                         <CardContent className="pt-6 space-y-4">
-                            {entitlement ? (
+                            {hasAccess ? (
                                 <div className="space-y-3">
                                     <Button className="w-full text-lg h-12" onClick={async () => {
                                         try {
@@ -203,7 +224,7 @@ const ProductDetails = () => {
                                 </Button>
                             )}
 
-                            {product.is_demo_available && !entitlement && (
+                            {product.is_demo_available && !hasAccess && (
                                 <Button variant="outline" className="w-full" onClick={async () => {
                                     try {
                                         if (!user) {
