@@ -99,13 +99,18 @@ Para cada questão, retorne um objeto JSON com estes campos:
 - statement: texto completo da pergunta (OBRIGATÓRIO)
 - option_a: alternativa A (OBRIGATÓRIO)
 - option_b: alternativa B (OBRIGATÓRIO)
-- option_c: alternativa C (OBRIGATÓRIO)
-- option_d: alternativa D (OBRIGATÓRIO)
+- option_c: alternativa C (se existir, senão null)
+- option_d: alternativa D (se existir, senão null)
 - option_e: alternativa E (se existir, senão null)
 - correct_option: letra(s) da resposta correta em MAIÚSCULA
 - explanation: explicação (se disponível, senão "")
 - question_type: "standard", "multi_select", "hotspot_yesno", "hotspot_complete", "list", "missing_word", ou "negative"
 - topic_id: o ID do tópico mais adequado da lista abaixo, ou null
+
+IMPORTANTE sobre opções:
+- Questões Yes/No têm APENAS option_a="Yes" e option_b="No" (option_c=null, option_d=null)
+- Questões com 3 alternativas: option_d=null
+- NUNCA retorne a string "null", retorne o valor null do JSON
 
 TIPOS:
 - "standard": múltipla escolha padrão (1 resposta)
@@ -260,10 +265,16 @@ REGRAS:
           return;
         }
 
-        // Validate topic_ids against actual topics
+        // Clean up questions: fix "null" strings and validate topic_ids
         const validTopicIds = new Set((topics || []).map((t: any) => t.id));
         let fixedCount = 0;
         for (const q of questions) {
+          // Convert string "null" to actual null for options
+          for (const field of ['option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'explanation', 'topic_id']) {
+            if (q[field] === 'null' || q[field] === 'NULL' || q[field] === 'None' || q[field] === '') {
+              q[field] = null;
+            }
+          }
           if (q.topic_id && !validTopicIds.has(q.topic_id)) {
             q.topic_id = null;
             fixedCount++;

@@ -88,15 +88,19 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
 
       for (let i = 0; i < valid.length; i += batchSize) {
         const batch = valid.slice(i, i + batchSize);
+        const cleanOpt = (v: string | null | undefined) => {
+          if (!v || v.trim() === '' || v.toLowerCase() === 'null') return null;
+          return v.trim();
+        };
         const rows = batch
           .filter(q => q.statement && q.option_a && q.option_b)
           .map(q => ({
             statement: q.statement.trim(),
             option_a: q.option_a.trim(),
             option_b: q.option_b.trim(),
-            option_c: q.option_c?.trim() || null,
-            option_d: q.option_d?.trim() || null,
-            option_e: q.option_e?.trim() || null,
+            option_c: cleanOpt(q.option_c),
+            option_d: cleanOpt(q.option_d),
+            option_e: cleanOpt(q.option_e),
             correct_option: q.correct_option.replace(/[^a-eA-E]/g, '').charAt(0).toUpperCase() || 'A',
             explanation: q.explanation || null,
             question_type: q.question_type || 'standard',
@@ -192,7 +196,7 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
                 <div className="grid grid-cols-2 gap-2">
                   {(['a', 'b', 'c', 'd'] as const).filter(letter => {
                     const val = q[`option_${letter}` as keyof ExtractedQuestion] as string | null;
-                    return letter === 'a' || letter === 'b' || (val && val.trim() !== '');
+                    return letter === 'a' || letter === 'b' || (val && val.trim() !== '' && val.toLowerCase() !== 'null');
                   }).map(letter => (
                     <div key={letter} className={`flex items-start gap-1 p-2 rounded border ${q.correct_option.toLowerCase() === letter ? 'bg-green-50 border-green-300' : ''}`}>
                       <span className="font-bold text-xs mt-1 uppercase">{letter})</span>
