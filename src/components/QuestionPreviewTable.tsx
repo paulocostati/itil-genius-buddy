@@ -89,7 +89,7 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
           option_c: q.option_c,
           option_d: q.option_d,
           option_e: q.option_e || null,
-          correct_option: q.correct_option.toUpperCase(),
+          correct_option: q.correct_option.replace(/[^a-eA-E]/g, '').charAt(0).toUpperCase() || 'A',
           explanation: q.explanation || null,
           question_type: q.question_type || 'standard',
           topic_id: q.topic_id,
