@@ -1,22 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-// import { useAdmin } from '@/hooks/useAdmin'; // Assuming this hook exists and checks the new admin tables or logic
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import {
-  CheckCircle, XCircle, Clock, Search, ExternalLink,
-  ShoppingCart, ShieldCheck, FileText, Banknote
+  CheckCircle, XCircle, FileText, Upload, Loader2
 } from 'lucide-react';
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import QuestionPreviewTable from '@/components/QuestionPreviewTable';
 
-// Admin interface for Orders
 interface AdminOrder {
   id: string;
   user_id: string;
@@ -25,52 +20,26 @@ interface AdminOrder {
   amount_cents: number;
   created_at: string;
   customer_email: string;
-  products: {
-    title: string;
-  };
-  order_payments: {
-    proof_text: string | null;
-    proof_url: string | null;
-    created_at: string;
-  }[];
+  products: { title: string };
+  order_payments: { proof_text: string | null; proof_url: string | null; created_at: string }[];
 }
 
 export default function Admin() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // Simplified admin check - in production use RLS or a proper hook
-  const [isAdmin, setIsAdmin] = useState(false);
-
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Checking admin status via a profile lookup or logic
-  useEffect(() => {
-    async function checkAdmin() {
-      if (!user) return;
-      // Temporary: Allow if email contains 'admin' or purely simplistic for this demo
-      // In reality, check a 'profiles' table role or similar
-      // For now, I'll assume if they can access the route in dev mode, or check a specific ID
-      // Let's assume the user IS admin if they accessed this protected route properly
-      // BUT for security we should check
+  // PDF import state
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractedQuestions, setExtractedQuestions] = useState<any[] | null>(null);
+  const [extractedTopics, setExtractedTopics] = useState<any[]>([]);
 
-      const { data } = await (supabase.rpc as any)('has_role', { _user_id: user.id, _role: 'admin' });
-      // If table doesn't exist, this might fail.
-      // Let's rely on the previous logic if available or just proceed.
-      setIsAdmin(true);
-      loadOrders();
-    }
-    checkAdmin();
-  }, [user]);
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     setLoading(true);
     const { data, error } = await (supabase.from as any)('orders')
-      .select(`
-        *,
-        products (title),
-        order_payments (*)
-      `)
+      .select('*, products (title), order_payments (*)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -80,27 +49,26 @@ export default function Admin() {
       setOrders(data as unknown as AdminOrder[]);
     }
     setLoading(false);
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    // Check admin & load
+    (supabase.rpc as any)('has_role', { _user_id: user.id, _role: 'admin' })
+      .then(({ data }: { data: boolean }) => {
+        if (!data) { navigate('/'); return; }
+        loadOrders();
+      });
+  }, [user, navigate, loadOrders]);
 
   async function handleApprove(order: AdminOrder) {
     try {
-      // 1. Update Order Status
       const { error: orderError } = await (supabase.from as any)('orders')
-        .update({ status: 'APPROVED' })
-        .eq('id', order.id);
-
+        .update({ status: 'APPROVED' }).eq('id', order.id);
       if (orderError) throw orderError;
 
-      // 2. Create Entitlement
       const { error: entError } = await (supabase.from as any)('entitlements')
-        .insert({
-          user_id: order.user_id,
-          product_id: order.product_id,
-          source_order_id: order.id,
-          status: 'ACTIVE',
-          starts_at: new Date().toISOString()
-        });
-
+        .insert({ user_id: order.user_id, product_id: order.product_id, source_order_id: order.id, status: 'ACTIVE', starts_at: new Date().toISOString() });
       if (entError) throw entError;
 
       toast.success(`Pedido ${order.id.slice(0, 8)} aprovado!`);
@@ -114,14 +82,54 @@ export default function Admin() {
   async function handleReject(orderId: string) {
     try {
       const { error } = await (supabase.from as any)('orders')
-        .update({ status: 'REJECTED' })
-        .eq('id', orderId);
-
+        .update({ status: 'REJECTED' }).eq('id', orderId);
       if (error) throw error;
       toast.info(`Pedido ${orderId.slice(0, 8)} rejeitado.`);
       loadOrders();
     } catch (e) {
       toast.error("Erro ao rejeitar");
+    }
+  }
+
+  async function handleExtractQuestions() {
+    if (!pdfFile) return;
+    setExtracting(true);
+    setExtractedQuestions(null);
+
+    try {
+      const filePath = `imports/${Date.now()}_${pdfFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('admin-uploads')
+        .upload(filePath, pdfFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ filePath }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Falha na extração');
+      }
+
+      const data = await res.json();
+      setExtractedQuestions(data.questions);
+      setExtractedTopics(data.topics);
+      toast.success(`${data.questions.length} questões extraídas!`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Erro ao extrair questões");
+    } finally {
+      setExtracting(false);
     }
   }
 
@@ -135,7 +143,7 @@ export default function Admin() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Painel Adm</h1>
-          <p className="text-muted-foreground">Gerenciar pedidos e aprovações</p>
+          <p className="text-muted-foreground">Gerenciar pedidos e importações</p>
         </div>
         <Button variant="outline" onClick={loadOrders}>Atualizar</Button>
       </div>
@@ -163,14 +171,15 @@ export default function Admin() {
 
       <Tabs defaultValue="pending">
         <TabsList>
-          <TabsTrigger value="pending">Pendentes de Aprovação</TabsTrigger>
+          <TabsTrigger value="pending">Pendentes</TabsTrigger>
           <TabsTrigger value="history">Histórico</TabsTrigger>
+          <TabsTrigger value="import">Importar Questões</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="mt-4">
           <div className="space-y-4">
             {pendingOrders.length === 0 ? (
-              <p className="text-muted-foreground py-8 text-center border rounded-lg bg-muted/20">Nenhum pedido pendente no momento.</p>
+              <p className="text-muted-foreground py-8 text-center border rounded-lg bg-muted/20">Nenhum pedido pendente.</p>
             ) : (
               pendingOrders.map(order => (
                 <Card key={order.id} className="overflow-hidden">
@@ -185,7 +194,6 @@ export default function Admin() {
                           {order.status === 'PAID_REVIEW' ? 'PGTO INFO' : 'AGUARDANDO'}
                         </Badge>
                       </div>
-
                       <div className="text-sm grid grid-cols-2 gap-4 mt-4 bg-muted/50 p-3 rounded">
                         <div>
                           <span className="text-muted-foreground block text-xs">Valor:</span>
@@ -198,9 +206,8 @@ export default function Admin() {
                           {new Date(order.created_at).toLocaleString()}
                         </div>
                       </div>
-
                       {order.order_payments.length > 0 && (
-                        <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded text-sm text-blue-900">
+                        <div className="mt-4 p-3 bg-muted/30 border rounded text-sm">
                           <p className="font-semibold flex items-center gap-2">
                             <FileText className="h-4 w-4" /> Comprovante:
                           </p>
@@ -224,7 +231,6 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="history" className="mt-4">
-          {/* List of approved/rejected orders */}
           <div className="space-y-4">
             {historyOrders.map(order => (
               <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
@@ -245,6 +251,57 @@ export default function Admin() {
               </div>
             ))}
           </div>
+        </TabsContent>
+
+        <TabsContent value="import" className="mt-4">
+          {extractedQuestions ? (
+            <QuestionPreviewTable
+              questions={extractedQuestions}
+              topics={extractedTopics}
+              onImportDone={() => {
+                setExtractedQuestions(null);
+                setPdfFile(null);
+              }}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="h-5 w-5" /> Importar Questões via PDF
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Faça upload de um PDF contendo questões de simulado. A IA extrairá automaticamente as questões, alternativas e respostas.
+                </p>
+                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={e => setPdfFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                    id="pdf-upload"
+                  />
+                  <label htmlFor="pdf-upload" className="cursor-pointer space-y-2 block">
+                    <Upload className="h-10 w-10 mx-auto text-muted-foreground" />
+                    <p className="font-medium">{pdfFile ? pdfFile.name : 'Clique para selecionar um PDF'}</p>
+                    <p className="text-xs text-muted-foreground">Formato: PDF com questões de múltipla escolha</p>
+                  </label>
+                </div>
+                <Button
+                  onClick={handleExtractQuestions}
+                  disabled={!pdfFile || extracting}
+                  className="w-full"
+                >
+                  {extracting ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Extraindo questões...</>
+                  ) : (
+                    <><FileText className="mr-2 h-4 w-4" /> Extrair Questões</>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
