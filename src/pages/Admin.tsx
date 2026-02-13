@@ -104,6 +104,13 @@ export default function Admin() {
 
   async function handleExtractQuestions() {
     if (!pdfFile) return;
+    
+    // Validate file size (max 20MB)
+    if (pdfFile.size > 20 * 1024 * 1024) {
+      toast.error("O arquivo é muito grande. O limite é 20MB.");
+      return;
+    }
+    
     setExtracting(true);
     setExtractedQuestions(null);
 
@@ -118,6 +125,9 @@ export default function Admin() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 300000); // 5 min timeout
+      
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-questions`, {
         method: 'POST',
         headers: {
@@ -125,10 +135,13 @@ export default function Admin() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ filePath, categoryId: importCategoryId || undefined }),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeout);
 
       if (!res.ok) {
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || 'Falha na extração');
       }
 
@@ -138,7 +151,11 @@ export default function Admin() {
       toast.success(`${data.questions.length} questões extraídas!`);
     } catch (e: any) {
       console.error(e);
-      toast.error(e.message || "Erro ao extrair questões");
+      if (e.name === 'AbortError') {
+        toast.error("Timeout: o PDF é muito grande. Tente dividir em partes menores.");
+      } else {
+        toast.error(e.message || "Erro ao extrair questões");
+      }
     } finally {
       setExtracting(false);
     }
