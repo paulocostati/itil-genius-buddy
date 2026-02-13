@@ -18,9 +18,9 @@ const MERCHANT_NAME = "EXAMTIS";
 const MERCHANT_CITY = "Sao Paulo";
 
 const PLAN_OPTIONS: Record<number, { label: string; price: number }> = {
-  30: { label: "30 dias", price: 12900 },
-  60: { label: "60 dias", price: 19700 },
-  90: { label: "90 dias", price: 27900 },
+  30: { label: "Essential — 30 dias", price: 19700 },
+  60: { label: "Professional — 60 dias", price: 29700 },
+  90: { label: "Executive — 90 dias", price: 49700 },
 };
 
 const formatPrice = (cents: number) =>
