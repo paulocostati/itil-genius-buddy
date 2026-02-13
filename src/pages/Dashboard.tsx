@@ -132,8 +132,8 @@ export default function Dashboard() {
               <BookOpen className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">ITIL 4 Study</h1>
-              <p className="text-sm opacity-80">Foundation Exam Prep</p>
+              <h1 className="text-xl font-bold">EXAMTIS</h1>
+              <p className="text-sm opacity-80">Simulados para Certificações</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
