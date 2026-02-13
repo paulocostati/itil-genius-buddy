@@ -19,12 +19,30 @@ const ProductDetails = () => {
         queryKey: ['product', slug],
         queryFn: async () => {
             const { data, error } = await (supabase.from as any)('products')
-                .select('*')
+                .select('*, categories(id, name, vendors(name))')
                 .eq('slug', slug)
                 .single();
 
             if (error) throw error;
             return data;
+        }
+    });
+
+    // Get actual question count from the database
+    const { data: actualQuestionCount } = useQuery({
+        queryKey: ['product-question-count', product?.category_id],
+        enabled: !!product?.category_id,
+        queryFn: async () => {
+            const { count, error } = await (supabase.from as any)('questions')
+                .select('id', { count: 'exact', head: true })
+                .in('topic_id', 
+                    (await (supabase.from as any)('topics')
+                        .select('id')
+                        .eq('category_id', product.category_id)
+                    ).data?.map((t: any) => t.id) || []
+                );
+            if (error) return null;
+            return count;
         }
     });
 
@@ -112,7 +130,7 @@ const ProductDetails = () => {
                                     <BookOpen className="h-5 w-5 text-primary mt-0.5" />
                                     <div>
                                         <h4 className="font-medium">Banco de Questões</h4>
-                                        <p className="text-sm text-muted-foreground">{product.question_count || 40} questões atualizadas</p>
+                                        <p className="text-sm text-muted-foreground">{actualQuestionCount ?? product.question_count ?? 40} questões atualizadas</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
