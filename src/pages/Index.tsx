@@ -52,10 +52,10 @@ export default function Index() {
               com explicações detalhadas e diagnóstico inteligente.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-              <Button size="lg" className="h-14 px-10 text-lg bg-white text-foreground hover:bg-white/90" asChild>
+              <Button size="lg" className="h-14 px-10 text-lg bg-white text-primary font-semibold hover:bg-white/90 shadow-lg" asChild>
                 <a href="#plans">Começar Agora</a>
               </Button>
-              <Button size="lg" variant="outline" className="h-14 px-10 text-lg border-white/30 text-white hover:bg-white/10" asChild>
+              <Button size="lg" className="h-14 px-10 text-lg bg-white/15 text-white font-semibold border-2 border-white/40 hover:bg-white/25 backdrop-blur-sm" asChild>
                 <Link to="/catalog">Ver Simulados</Link>
               </Button>
             </div>
