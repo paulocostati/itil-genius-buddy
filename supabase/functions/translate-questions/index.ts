@@ -46,7 +46,6 @@ Deno.serve(async (req) => {
     }
 
     const { questionIds, targetLang } = await req.json();
-    // targetLang: "pt-BR" or "en"
 
     if (!questionIds || !Array.isArray(questionIds) || questionIds.length === 0) {
       return new Response(JSON.stringify({ error: "questionIds required" }), {
@@ -128,17 +127,34 @@ ${JSON.stringify(batch)}`;
 
       // Update each question in DB
       for (const tq of translatedBatch) {
-        const updateData: any = {};
-        if (tq.statement) updateData.statement = tq.statement;
-        if (tq.option_a) updateData.option_a = tq.option_a;
-        if (tq.option_b) updateData.option_b = tq.option_b;
-        if (tq.option_c) updateData.option_c = tq.option_c;
-        if (tq.option_d) updateData.option_d = tq.option_d;
-        if (tq.option_e !== undefined) updateData.option_e = tq.option_e;
-        if (tq.explanation !== undefined) updateData.explanation = tq.explanation;
+        if (targetLang === "pt-BR") {
+          const updateData: any = {};
+          if (tq.statement) updateData.statement_pt = tq.statement;
+          if (tq.option_a) updateData.option_a_pt = tq.option_a;
+          if (tq.option_b) updateData.option_b_pt = tq.option_b;
+          if (tq.option_c !== undefined) updateData.option_c_pt = tq.option_c;
+          if (tq.option_d !== undefined) updateData.option_d_pt = tq.option_d;
+          if (tq.option_e !== undefined) updateData.option_e_pt = tq.option_e;
+          if (tq.explanation !== undefined) updateData.explanation_pt = tq.explanation;
 
-        if (Object.keys(updateData).length > 0) {
-          await adminClient.from("questions").update(updateData).eq("id", tq.id);
+          if (Object.keys(updateData).length > 0) {
+            await adminClient.from("questions").update(updateData).eq("id", tq.id);
+          }
+        } else {
+          // If translating to English, the original columns ARE English
+          // So we overwrite the main columns (original behavior)
+          const updateData: any = {};
+          if (tq.statement) updateData.statement = tq.statement;
+          if (tq.option_a) updateData.option_a = tq.option_a;
+          if (tq.option_b) updateData.option_b = tq.option_b;
+          if (tq.option_c !== undefined) updateData.option_c = tq.option_c;
+          if (tq.option_d !== undefined) updateData.option_d = tq.option_d;
+          if (tq.option_e !== undefined) updateData.option_e = tq.option_e;
+          if (tq.explanation !== undefined) updateData.explanation = tq.explanation;
+
+          if (Object.keys(updateData).length > 0) {
+            await adminClient.from("questions").update(updateData).eq("id", tq.id);
+          }
         }
       }
 

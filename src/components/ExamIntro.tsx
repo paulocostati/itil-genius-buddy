@@ -1,13 +1,14 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, Target, BookOpen, CheckCircle, AlertTriangle, ListChecks } from 'lucide-react';
+import { Clock, Target, BookOpen, CheckCircle, AlertTriangle, ListChecks, Globe } from 'lucide-react';
 
 interface ExamIntroProps {
   examTitle?: string;
   totalQuestions: number;
   durationMinutes?: number;
   passPercentage?: number;
-  onStart: () => void;
+  onStart: (lang: 'en' | 'pt') => void;
 }
 
 export default function ExamIntro({
@@ -17,6 +18,7 @@ export default function ExamIntro({
   passPercentage = 65,
   onStart
 }: ExamIntroProps) {
+  const [lang, setLang] = useState<'en' | 'pt'>('en');
   const passMark = Math.ceil(totalQuestions * (passPercentage / 100));
 
   return (
@@ -62,6 +64,36 @@ export default function ExamIntro({
             </div>
           </div>
 
+          {/* Language Selection */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Globe className="h-4 w-4" />
+              Idioma das Questões:
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setLang('en')}
+                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                  lang === 'en'
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-muted text-muted-foreground hover:border-primary/40'
+                }`}
+              >
+                🇺🇸 English
+              </button>
+              <button
+                onClick={() => setLang('pt')}
+                className={`p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                  lang === 'pt'
+                    ? 'border-primary bg-primary/5 text-primary'
+                    : 'border-muted text-muted-foreground hover:border-primary/40'
+                }`}
+              >
+                🇧🇷 Português
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-3 text-sm">
             <h3 className="font-semibold text-foreground">Tipos de Questão:</h3>
             <div className="space-y-2 text-muted-foreground">
@@ -91,7 +123,7 @@ export default function ExamIntro({
             </p>
           </div>
 
-          <Button onClick={onStart} size="lg" className="w-full gradient-primary text-primary-foreground text-base">
+          <Button onClick={() => onStart(lang)} size="lg" className="w-full gradient-primary text-primary-foreground text-base">
             Iniciar Simulado
           </Button>
         </CardContent>

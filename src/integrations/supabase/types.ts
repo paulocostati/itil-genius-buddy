@@ -373,15 +373,22 @@ export type Database = {
           correct_option: string
           created_at: string
           explanation: string | null
+          explanation_pt: string | null
           id: string
           option_a: string
+          option_a_pt: string | null
           option_b: string
-          option_c: string
-          option_d: string
+          option_b_pt: string | null
+          option_c: string | null
+          option_c_pt: string | null
+          option_d: string | null
+          option_d_pt: string | null
           option_e: string | null
+          option_e_pt: string | null
           question_type: string
           source: string | null
           statement: string
+          statement_pt: string | null
           tags: string[] | null
           topic_id: string
         }
@@ -389,15 +396,22 @@ export type Database = {
           correct_option: string
           created_at?: string
           explanation?: string | null
+          explanation_pt?: string | null
           id?: string
           option_a: string
+          option_a_pt?: string | null
           option_b: string
-          option_c: string
-          option_d: string
+          option_b_pt?: string | null
+          option_c?: string | null
+          option_c_pt?: string | null
+          option_d?: string | null
+          option_d_pt?: string | null
           option_e?: string | null
+          option_e_pt?: string | null
           question_type?: string
           source?: string | null
           statement: string
+          statement_pt?: string | null
           tags?: string[] | null
           topic_id: string
         }
@@ -405,15 +419,22 @@ export type Database = {
           correct_option?: string
           created_at?: string
           explanation?: string | null
+          explanation_pt?: string | null
           id?: string
           option_a?: string
+          option_a_pt?: string | null
           option_b?: string
-          option_c?: string
-          option_d?: string
+          option_b_pt?: string | null
+          option_c?: string | null
+          option_c_pt?: string | null
+          option_d?: string | null
+          option_d_pt?: string | null
           option_e?: string | null
+          option_e_pt?: string | null
           question_type?: string
           source?: string | null
           statement?: string
+          statement_pt?: string | null
           tags?: string[] | null
           topic_id?: string
         }
