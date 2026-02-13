@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { BookOpen, Mail, Lock, User } from 'lucide-react';
 import logoExamtis from '@/assets/logo-examtis.png';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
   const { user, loading, signIn, signUp } = useAuth();
@@ -93,12 +94,36 @@ export default function Auth() {
               {submitting ? 'Aguarde...' : isSignUp ? 'Criar conta' : 'Entrar'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm">
+          {!isSignUp && (
+            <div className="mt-3 text-center">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email) {
+                    toast.error('Digite seu e-mail primeiro.');
+                    return;
+                  }
+                  try {
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) throw error;
+                    toast.success('E-mail de redefinição enviado! Verifique sua caixa de entrada.');
+                  } catch (err: any) {
+                    toast.error(err.message || 'Erro ao enviar e-mail de redefinição.');
+                  }
+                }}
+                className="text-sm text-muted-foreground hover:text-primary hover:underline"
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+          )}
+          <div className="mt-3 text-center text-sm">
             <button
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
-                // Optional: update URL
                 navigate(`?mode=${!isSignUp ? 'signup' : 'login'}&next=${next}`, { replace: true });
               }}
               className="text-primary hover:underline font-medium"
