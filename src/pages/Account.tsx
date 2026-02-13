@@ -289,7 +289,7 @@ export default function Account() {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             {exam.completed && exam.score !== null && (
-                                                <div className={`text-xl font-bold ${(exam.score / exam.total_questions) >= 0.65 ? 'text-green-600' : 'text-red-600'
+                                                    <div className={`text-xl font-bold ${(exam.score / exam.total_questions) >= 0.65 ? 'text-success' : 'text-destructive'
                                                     }`}>
                                                     {Math.round((exam.score / exam.total_questions) * 100)}%
                                                 </div>

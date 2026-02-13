@@ -142,7 +142,7 @@ export default function Result() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Hero Header */}
-      <div className={`relative overflow-hidden ${passed ? 'bg-gradient-to-br from-green-600 to-emerald-800' : 'bg-gradient-to-br from-red-600 to-rose-800'} text-white shadow-xl`}>
+      <div className={`relative overflow-hidden ${passed ? 'bg-gradient-to-br from-success/80 to-success' : 'bg-gradient-to-br from-destructive/80 to-destructive'} text-white shadow-xl`}>
         <div className="absolute top-0 left-0 w-full h-full opacity-20 bg-[url('/grid-pattern.svg')]"></div>
         <div className="container mx-auto px-4 pt-12 pb-16 relative z-10">
           <Button
@@ -204,9 +204,9 @@ export default function Result() {
                   Você acabou de testar a versão demo. Adquira o simulado completo para acessar:
                 </p>
                 <ul className="mt-2 space-y-1 text-sm text-foreground/80">
-                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> Banco com centenas de questões</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> Histórico detalhado de evolução</li>
-                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> Garantia de aprovação</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-success" /> Banco com centenas de questões</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-success" /> Histórico detalhado de evolução</li>
+                  <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-success" /> Garantia de aprovação</li>
                 </ul>
               </div>
               <Button
@@ -240,16 +240,16 @@ export default function Result() {
               </CardHeader>
               <CardContent className="pt-6 space-y-6">
                 {criticalTopics.length > 0 ? (
-                  <div className="flex gap-4 p-4 rounded-xl bg-red-50 border border-red-100">
-                    <AlertTriangle className="h-6 w-6 text-red-500 shrink-0 mt-1" />
+                  <div className="flex gap-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20">
+                    <AlertTriangle className="h-6 w-6 text-destructive shrink-0 mt-1" />
                     <div className="space-y-1">
-                      <h4 className="font-bold text-red-900">Onde você precisa focar:</h4>
-                      <p className="text-sm text-red-800">
+                      <h4 className="font-bold text-destructive">Onde você precisa focar:</h4>
+                      <p className="text-sm text-muted-foreground">
                         Baseado no seu desempenho, recomendamos reforçar o estudo nos seguintes tópicos:
                       </p>
                       <div className="flex flex-wrap gap-2 mt-3">
                         {criticalTopics.slice(0, 4).map((t, idx) => (
-                          <span key={idx} className="px-2 py-1 bg-white border border-red-200 text-red-700 rounded text-xs font-semibold shadow-sm">
+                          <span key={idx} className="px-2 py-1 bg-destructive/10 border border-destructive/20 text-destructive rounded text-xs font-semibold">
                             {t.name} ({t.pct}%)
                           </span>
                         ))}
@@ -257,11 +257,11 @@ export default function Result() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex gap-4 p-4 rounded-xl bg-green-50 border border-green-100">
-                    <Trophy className="h-6 w-6 text-green-500 shrink-0 mt-1" />
+                  <div className="flex gap-4 p-4 rounded-xl bg-success/10 border border-success/20">
+                    <Trophy className="h-6 w-6 text-success shrink-0 mt-1" />
                     <div className="space-y-1">
-                      <h4 className="font-bold text-green-900">Excelente desempenho global!</h4>
-                      <p className="text-sm text-green-800">
+                      <h4 className="font-bold text-success">Excelente desempenho global!</h4>
+                      <p className="text-sm text-muted-foreground">
                         Você não possui tópicos críticos neste simulado. Continue revisando para manter a consistência.
                       </p>
                     </div>
@@ -271,13 +271,13 @@ export default function Result() {
                 <div className="grid md:grid-cols-2 gap-6 pt-2">
                   <div className="space-y-3">
                     <h4 className="text-sm font-bold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <div className="w-2 h-2 rounded-full bg-green-500" /> Seus Pontos Fortes
+                      <div className="w-2 h-2 rounded-full bg-success" /> Seus Pontos Fortes
                     </h4>
                     <ul className="space-y-2">
                       {goodTopics.length > 0 ? goodTopics.slice(0, 3).map((t, i) => (
                         <li key={i} className="text-sm flex items-center justify-between p-2 rounded bg-muted/30">
                           <span>{t.name}</span>
-                          <span className="font-bold text-green-600">{t.pct}%</span>
+                          <span className="font-bold text-success">{t.pct}%</span>
                         </li>
                       )) : <li className="text-sm text-muted-foreground italic">Nenhum tópico com mais de 80% ainda.</li>}
                     </ul>
@@ -285,13 +285,13 @@ export default function Result() {
 
                   <div className="space-y-3">
                     <h4 className="text-sm font-bold flex items-center gap-2 text-muted-foreground uppercase tracking-wider">
-                      <div className="w-2 h-2 rounded-full bg-orange-400" /> Próximos Alvos
+                      <div className="w-2 h-2 rounded-full bg-warning" /> Próximos Alvos
                     </h4>
                     <ul className="space-y-2">
                       {neutralTopics.length > 0 ? neutralTopics.slice(0, 3).map((t, i) => (
                         <li key={i} className="text-sm flex items-center justify-between p-2 rounded bg-muted/30">
                           <span>{t.name}</span>
-                          <span className="font-bold text-orange-600">{t.pct}%</span>
+                          <span className="font-bold text-warning">{t.pct}%</span>
                         </li>
                       )) : <li className="text-sm text-muted-foreground italic">Foque primeiro nos tópicos críticos.</li>}
                     </ul>
@@ -313,11 +313,11 @@ export default function Result() {
                     <div key={i} className="space-y-2">
                       <div className="flex justify-between items-center text-sm">
                         <span className="font-medium truncate max-w-[200px]">{item.name}</span>
-                        <span className={`font-mono font-bold ${item.pct >= 65 ? 'text-green-600' : 'text-red-500'}`}>
+                        <span className={`font-mono font-bold ${item.pct >= 65 ? 'text-success' : 'text-destructive'}`}>
                           {item.pct}%
                         </span>
                       </div>
-                      <Progress value={item.pct} className={`h-2 ${item.pct >= 65 ? 'bg-green-100' : 'bg-red-100'}`} />
+                      <Progress value={item.pct} className={`h-2 ${item.pct >= 65 ? 'bg-success/20' : 'bg-destructive/20'}`} />
                       <p className="text-xs text-muted-foreground text-right">{item.correct} de {item.total} corretas</p>
                     </div>
                   ))}
@@ -338,9 +338,9 @@ export default function Result() {
                         <p className="text-sm font-medium leading-tight">{item.name}</p>
                         <p className="text-xs text-muted-foreground">{item.correct}/{item.total} acertos</p>
                       </div>
-                      <div className={`px-2 py-1 rounded text-xs font-bold ${item.pct >= 80 ? 'bg-green-100 text-green-700' :
-                        item.pct >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
+                      <div className={`px-2 py-1 rounded text-xs font-bold ${item.pct >= 80 ? 'bg-success/15 text-success' :
+                        item.pct >= 60 ? 'bg-warning/15 text-warning' :
+                          'bg-destructive/15 text-destructive'
                         }`}>
                         {item.pct}%
                       </div>
@@ -387,12 +387,12 @@ export default function Result() {
                 </div>
               ) : (
                 filteredQuestions.map((q) => (
-                  <Card key={q.id} className={`overflow-hidden border-l-4 ${q.is_correct ? 'border-l-green-500' : 'border-l-red-500'}`}>
+                  <Card key={q.id} className={`overflow-hidden border-l-4 ${q.is_correct ? 'border-l-success' : 'border-l-destructive'}`}>
                     <CardHeader className="bg-muted/20 py-3 px-4 border-b">
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-muted-foreground">#{q.question_order}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${q.is_correct ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${q.is_correct ? 'bg-success/15 text-success' : 'bg-destructive/15 text-destructive'}`}>
                             {q.is_correct ? 'Correta' : 'Incorreta'}
                           </span>
                           <span className="text-xs text-muted-foreground bg-background px-2 py-0.5 rounded border hidden sm:inline-block">
@@ -415,11 +415,11 @@ export default function Result() {
                           let icon = null;
 
                           if (isCorrect) {
-                            style = "border-green-200 bg-green-50 text-green-900 ring-1 ring-green-200";
-                            icon = <CheckCircle className="h-4 w-4 text-green-600" />;
-                          } else if (isSelected) { // Automatically implies Incorrect since logic above checked isCorrect
-                            style = "border-red-200 bg-red-50 text-red-900 ring-1 ring-red-200";
-                            icon = <XCircle className="h-4 w-4 text-red-600" />;
+                            style = "border-success/30 bg-success/10 text-success ring-1 ring-success/20";
+                            icon = <CheckCircle className="h-4 w-4 text-success" />;
+                          } else if (isSelected) {
+                            style = "border-destructive/30 bg-destructive/10 text-destructive ring-1 ring-destructive/20";
+                            icon = <XCircle className="h-4 w-4 text-destructive" />;
                           }
 
                           return (
@@ -435,11 +435,11 @@ export default function Result() {
                       </div>
 
                       {q.questions.explanation && !q.is_correct && (
-                        <div className="mt-6 p-4 bg-blue-50/50 border border-blue-100 rounded-lg animate-in fade-in">
-                          <div className="flex items-center gap-2 mb-1 text-blue-800 font-semibold text-sm">
+                        <div className="mt-6 p-4 bg-primary/5 border border-primary/15 rounded-lg animate-in fade-in">
+                          <div className="flex items-center gap-2 mb-1 text-primary font-semibold text-sm">
                             <BookOpen className="h-4 w-4" /> Explicação
                           </div>
-                          <p className="text-sm text-blue-900/80 leading-relaxed">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
                             {q.questions.explanation}
                           </p>
                         </div>

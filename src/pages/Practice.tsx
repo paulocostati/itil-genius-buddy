@@ -52,10 +52,10 @@ interface PracticeQuestion {
 type QuestionType = 'standard' | 'negative' | 'missing_word' | 'list';
 
 const QUESTION_TYPES: { id: QuestionType; label: string; color: string }[] = [
-  { id: 'standard', label: 'Padrão', color: 'bg-blue-100 text-blue-800' },
-  { id: 'negative', label: 'Negativa (EXCETO)', color: 'bg-red-100 text-red-800' },
-  { id: 'missing_word', label: 'Completar Lacuna', color: 'bg-yellow-100 text-yellow-800' },
-  { id: 'list', label: 'Lista', color: 'bg-purple-100 text-purple-800' },
+  { id: 'standard', label: 'Padrão', color: 'bg-primary/15 text-primary' },
+  { id: 'negative', label: 'Negativa (EXCETO)', color: 'bg-destructive/15 text-destructive' },
+  { id: 'missing_word', label: 'Completar Lacuna', color: 'bg-warning/15 text-warning' },
+  { id: 'list', label: 'Lista', color: 'bg-primary/20 text-primary' },
 ];
 
 export default function Practice() {
@@ -391,7 +391,7 @@ export default function Practice() {
           <Button variant="outline" onClick={resetPractice} className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Voltar ao Início
           </Button>
-          <Badge variant={percentage >= 70 ? "secondary" : "destructive"} className={`px-4 py-1 text-sm font-bold ${percentage >= 70 ? 'bg-green-100 text-green-700' : ''}`}>
+          <Badge variant={percentage >= 70 ? "secondary" : "destructive"} className={`px-4 py-1 text-sm font-bold ${percentage >= 70 ? 'bg-success/15 text-success' : ''}`}>
             {percentage}% de Aproveitamento
           </Badge>
         </div>
@@ -403,12 +403,12 @@ export default function Practice() {
 
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="text-center p-6 space-y-2">
-            <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto" />
+            <CheckCircle2 className="h-8 w-8 text-success mx-auto" />
             <p className="text-2xl font-bold">{stats.correct}</p>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Acertos</p>
           </Card>
           <Card className="text-center p-6 space-y-2">
-            <XCircle className="h-8 w-8 text-red-500 mx-auto" />
+            <XCircle className="h-8 w-8 text-destructive mx-auto" />
             <p className="text-2xl font-bold">{stats.wrong}</p>
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Erros</p>
           </Card>
@@ -427,16 +427,16 @@ export default function Practice() {
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
             {critical.length > 0 ? (
-              <div className="p-4 rounded-xl bg-red-50 border border-red-100 flex gap-4">
-                <AlertCircle className="h-6 w-6 text-red-500 shrink-0 mt-1" />
+              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex gap-4">
+                <AlertCircle className="h-6 w-6 text-destructive shrink-0 mt-1" />
                 <div className="space-y-1">
-                  <h4 className="font-bold text-red-900 uppercase text-xs tracking-wider">Prioridade de Estudo:</h4>
-                  <p className="text-sm text-red-800">
+                  <h4 className="font-bold text-destructive uppercase text-xs tracking-wider">Prioridade de Estudo:</h4>
+                  <p className="text-sm text-muted-foreground">
                     Você teve dificuldade com os seguintes tópicos. Recomendamos revisar o material teórico:
                   </p>
                   <div className="flex flex-wrap gap-2 mt-3">
                     {critical.map((r, i) => (
-                      <span key={i} className="px-2 py-1 bg-white border border-red-200 text-red-700 rounded text-xs font-semibold">
+                      <span key={i} className="px-2 py-1 bg-destructive/10 border border-destructive/20 text-destructive rounded text-xs font-semibold">
                         {r.name} ({r.pct}%)
                       </span>
                     ))}
@@ -444,11 +444,11 @@ export default function Practice() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-green-50 border border-green-100 flex gap-4">
-                <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0 mt-1" />
+              <div className="p-4 rounded-xl bg-success/10 border border-success/20 flex gap-4">
+                <CheckCircle2 className="h-6 w-6 text-success shrink-0 mt-1" />
                 <div className="space-y-1">
-                  <h4 className="font-bold text-green-900 uppercase text-xs tracking-wider">Excelente Trabalho!</h4>
-                  <p className="text-sm text-green-800">
+                  <h4 className="font-bold text-success uppercase text-xs tracking-wider">Excelente Trabalho!</h4>
+                  <p className="text-sm text-muted-foreground">
                     Seu desempenho em todos os tópicos selecionados foi satisfatório. Continue praticando para masterizar!
                   </p>
                 </div>
@@ -464,9 +464,9 @@ export default function Practice() {
                       <p className="text-sm font-medium">{r.name}</p>
                       <p className="text-xs text-muted-foreground">{r.correct} acertos de {r.total} questões</p>
                     </div>
-                    <div className={`px-2 py-1 rounded text-xs font-bold ${r.pct >= 80 ? 'bg-green-100 text-green-700' :
-                      r.pct >= 50 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
+                    <div className={`px-2 py-1 rounded text-xs font-bold ${r.pct >= 80 ? 'bg-success/15 text-success' :
+                      r.pct >= 50 ? 'bg-warning/15 text-warning' :
+                        'bg-destructive/15 text-destructive'
                       }`}>
                       {r.pct}%
                     </div>
@@ -613,7 +613,7 @@ export default function Practice() {
                     <span>Máx: {isSubscribed ? availableQuestionCount : Math.min(availableQuestionCount, 20)}</span>
                   </div>
                   {!isSubscribed && (
-                    <p className="text-[10px] text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
+                    <p className="text-[10px] text-warning bg-warning/10 p-2 rounded-lg border border-warning/20">
                       Modo gratuito limitado a 20 questões. Adquira o acesso completo para liberar todo o banco.
                     </p>
                   )}
@@ -695,11 +695,11 @@ export default function Practice() {
             </div>
             <div className="h-8 w-px bg-border"></div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-green-600">
+              <div className="flex items-center gap-1.5 text-success">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{stats.correct}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-red-500">
+              <div className="flex items-center gap-1.5 text-destructive">
                 <XCircle className="h-4 w-4" />
                 <span>{stats.wrong}</span>
               </div>
@@ -746,11 +746,11 @@ export default function Practice() {
 
                 if (showAnswer) {
                   if (isCorrect) {
-                    cardStyle = "border-green-500 bg-green-50 ring-1 ring-green-500";
-                    icon = <CheckCircle2 className="h-5 w-5 text-green-600 absolute right-4" />;
+                    cardStyle = "border-success bg-success/10 ring-1 ring-success/30";
+                    icon = <CheckCircle2 className="h-5 w-5 text-success absolute right-4" />;
                   } else if (isSelected) {
-                    cardStyle = "border-red-500 bg-red-50";
-                    icon = <XCircle className="h-5 w-5 text-red-500 absolute right-4" />;
+                    cardStyle = "border-destructive bg-destructive/10";
+                    icon = <XCircle className="h-5 w-5 text-destructive absolute right-4" />;
                   } else {
                     cardStyle = "border-transparent opacity-60";
                   }
@@ -764,8 +764,8 @@ export default function Practice() {
                     onClick={() => handleAnswer(opt.key)}
                     className={`relative p-4 rounded-xl flex items-start gap-4 ${cardStyle} ${showAnswer ? 'cursor-default' : ''}`}
                   >
-                    <div className={`flex-shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-sm font-bold border ${showAnswer && isCorrect ? 'bg-green-600 text-white border-green-600' :
-                      showAnswer && isSelected ? 'bg-red-500 text-white border-red-500' :
+                    <div className={`flex-shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-sm font-bold border ${showAnswer && isCorrect ? 'bg-success text-success-foreground border-success' :
+                      showAnswer && isSelected ? 'bg-destructive text-destructive-foreground border-destructive' :
                         isSelected ? 'bg-primary text-primary-foreground border-primary' :
                           'bg-muted text-muted-foreground border-border'
                       }`}>
@@ -779,12 +779,12 @@ export default function Practice() {
             </div>
 
             {showAnswer && currentQ.explanation && (
-              <div className="mt-8 p-6 rounded-xl bg-blue-50/50 border border-blue-100 animate-in fade-in zoom-in-95 duration-300">
-                <div className="flex items-center gap-2 mb-2 text-blue-800 font-semibold">
+              <div className="mt-8 p-6 rounded-xl bg-primary/5 border border-primary/15 animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex items-center gap-2 mb-2 text-primary font-semibold">
                   <BookOpen className="h-4 w-4" />
                   <span>Explicação</span>
                 </div>
-                <p className="text-blue-900/80 leading-relaxed text-sm md:text-base">
+                <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
                   {currentQ.explanation}
                 </p>
               </div>

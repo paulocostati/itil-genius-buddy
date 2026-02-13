@@ -108,24 +108,24 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="gradient-hero text-primary-foreground">
+      <header className="gradient-hero border-b border-border">
         <div className="container mx-auto px-4 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-accent">
-              <BookOpen className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
+              <BookOpen className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
               <h1 className="text-xl font-bold">EXAMTIS</h1>
-              <p className="text-sm opacity-80">Simulados para Certificações</p>
+              <p className="text-sm text-muted-foreground">Simulados para Certificações</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
-              <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="text-primary-foreground hover:bg-primary-foreground/10">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="text-muted-foreground hover:text-foreground">
                 <Shield className="h-4 w-4 mr-2" /> Admin
               </Button>
             )}
-            <Button variant="ghost" size="sm" onClick={signOut} className="text-primary-foreground hover:bg-primary-foreground/10">
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-foreground">
               <LogOut className="h-4 w-4 mr-2" /> Sair
             </Button>
           </div>

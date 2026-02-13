@@ -30,7 +30,7 @@ export function ProductCard({ product }: ProductCardProps) {
     };
 
     return (
-        <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden border-border/50">
+        <Card className="flex flex-col h-full hover:shadow-lg transition-shadow duration-300 overflow-hidden border-border bg-card">
             <div className="h-40 bg-muted flex items-center justify-center relative group overflow-hidden p-2">
                 {product.cover_image ? (
                     <img

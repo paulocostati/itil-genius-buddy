@@ -184,11 +184,11 @@ export default function Admin() {
       <div className="grid gap-6 md:grid-cols-3 mb-8">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Pendentes</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-yellow-600">{pendingOrders.length}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold text-warning">{pendingOrders.length}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Aprovados</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-green-600">{orders.filter(o => o.status === 'APPROVED').length}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold text-success">{orders.filter(o => o.status === 'APPROVED').length}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Vendas (Total)</CardTitle></CardHeader>
@@ -256,7 +256,7 @@ export default function Admin() {
                       )}
                     </div>
                     <div className="p-4 bg-muted/30 flex flex-row md:flex-col justify-center gap-3 border-t md:border-t-0 md:border-l">
-                      <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => handleApprove(order)}>
+                      <Button className="w-full bg-success hover:bg-success/90" onClick={() => handleApprove(order)}>
                         <CheckCircle className="mr-2 h-4 w-4" /> Aprovar
                       </Button>
                       <Button variant="destructive" className="w-full" onClick={() => handleReject(order.id)}>
@@ -284,7 +284,7 @@ export default function Admin() {
                   <span className="font-bold">
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(order.amount_cents / 100)}
                   </span>
-                  <Badge variant={order.status === 'APPROVED' ? 'default' : 'destructive'} className={order.status === 'APPROVED' ? 'bg-green-600' : ''}>
+                  <Badge variant={order.status === 'APPROVED' ? 'default' : 'destructive'} className={order.status === 'APPROVED' ? 'bg-success' : ''}>
                     {order.status}
                   </Badge>
                 </div>
