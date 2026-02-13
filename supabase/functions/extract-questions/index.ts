@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
           return;
         }
 
-        const { filePath, categoryId } = await req.json();
+        const { filePath, categoryId, syllabusUrl } = await req.json();
 
         sendEvent(controller, "progress", { message: "Baixando PDF do storage..." });
 
@@ -90,6 +90,34 @@ Deno.serve(async (req) => {
           .map((t: any) => `- ID: ${t.id} | Nome: ${t.name} | Área: ${t.area}`)
           .join("\n");
 
+        // Fetch syllabus content if URL provided
+        let syllabusContent = "";
+        if (syllabusUrl) {
+          sendEvent(controller, "progress", { message: `📖 Buscando syllabus de ${syllabusUrl}...` });
+          try {
+            const syllabusRes = await fetch(syllabusUrl, { 
+              headers: { 'User-Agent': 'Mozilla/5.0' },
+              signal: AbortSignal.timeout(15000),
+            });
+            if (syllabusRes.ok) {
+              const html = await syllabusRes.text();
+              // Extract text content from HTML (simple strip)
+              syllabusContent = html
+                .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .substring(0, 15000); // Limit to 15k chars
+              sendEvent(controller, "progress", { message: `📖 Syllabus carregado (${syllabusContent.length} chars)` });
+            } else {
+              sendEvent(controller, "progress", { message: `⚠️ Não foi possível acessar o syllabus (${syllabusRes.status})` });
+            }
+          } catch (e) {
+            sendEvent(controller, "progress", { message: `⚠️ Erro ao buscar syllabus: ${e instanceof Error ? e.message : 'timeout'}` });
+          }
+        }
+
         sendEvent(controller, "progress", { message: `${(topics || []).length} tópicos encontrados. Enviando para IA...` });
 
         const systemPrompt = `Você é um extrator de questões de exame de certificação a partir de PDFs.
@@ -121,9 +149,17 @@ TIPOS:
 - "missing_word": lacuna no texto
 - "negative": o que NÃO é correto
 
-Tópicos:
-${topicsList}
+Tópicos cadastrados:
+${topicsList || "(nenhum tópico cadastrado ainda — crie topic_id=null e sugira um nome de tópico no campo explanation)"}
+${syllabusContent ? `
+CONTEXTO DO SYLLABUS OFICIAL DA CERTIFICAÇÃO:
+${syllabusContent}
 
+Use este conteúdo para:
+- Mapear cada questão ao tópico mais adequado
+- Se não houver tópicos cadastrados, use topic_id=null mas inclua na explanation qual área/domínio do syllabus a questão pertence
+- Entender o peso e importância de cada área do exame
+` : ''}
 REGRAS:
 - Extraia TODAS as questões sem exceção
 - Para HOTSPOT Yes/No: SEPARE cada afirmação em questão individual
