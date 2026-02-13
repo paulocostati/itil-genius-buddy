@@ -6,11 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
-import {
-  CheckCircle, XCircle, FileText, Upload, Loader2
-} from 'lucide-react';
+import { CheckCircle, XCircle, FileText, Loader2 } from 'lucide-react';
 import { toast } from "sonner";
-import QuestionPreviewTable from '@/components/QuestionPreviewTable';
+import QuestionImportWizard from '@/components/admin/QuestionImportWizard';
 import VendorManager from '@/components/admin/VendorManager';
 import CategoryManager from '@/components/admin/CategoryManager';
 import ProductManager from '@/components/admin/ProductManager';
@@ -37,17 +35,8 @@ export default function Admin() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // PDF import state
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [extracting, setExtracting] = useState(false);
-  const [extractedQuestions, setExtractedQuestions] = useState<any[] | null>(null);
-  const [extractedTopics, setExtractedTopics] = useState<any[]>([]);
-  const [importCategoryId, setImportCategoryId] = useState<string>('');
-  const [categories, setCategories] = useState<{ id: string; name: string; vendors?: { name: string } }[]>([]);
-  const [extractionLogs, setExtractionLogs] = useState<string[]>([]);
-  const [questionsFound, setQuestionsFound] = useState(0);
-
   // Translation state
+  const [translateCategories, setTranslateCategories] = useState<{ id: string; name: string; vendors?: { name: string } }[]>([]);
   const [translateCategoryId, setTranslateCategoryId] = useState<string>('');
   const [translateLang, setTranslateLang] = useState<string>('pt-BR');
   const [translating, setTranslating] = useState(false);
@@ -74,9 +63,9 @@ export default function Admin() {
       .then(({ data }: { data: boolean }) => {
         if (!data) { navigate('/'); return; }
         loadOrders();
-        // Load categories for import selector
+        // Load categories for translate selector
         (supabase.from as any)('categories').select('id, name, vendors(name)').order('name')
-          .then(({ data: catData }: any) => setCategories(catData || []));
+          .then(({ data: catData }: any) => setTranslateCategories(catData || []));
       });
   }, [user, navigate, loadOrders]);
 
@@ -107,101 +96,6 @@ export default function Admin() {
       loadOrders();
     } catch (e) {
       toast.error("Erro ao rejeitar");
-    }
-  }
-
-  async function handleExtractQuestions() {
-    if (!pdfFile) return;
-    
-    if (pdfFile.size > 20 * 1024 * 1024) {
-      toast.error("O arquivo é muito grande. O limite é 20MB.");
-      return;
-    }
-    
-    setExtracting(true);
-    setExtractedQuestions(null);
-    setExtractionLogs([]);
-    setQuestionsFound(0);
-
-    try {
-      const filePath = `imports/${Date.now()}_${pdfFile.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('admin-uploads')
-        .upload(filePath, pdfFile);
-
-      if (uploadError) throw uploadError;
-
-      setExtractionLogs(prev => [...prev, '📤 Upload concluído. Iniciando extração...']);
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 300000);
-      
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-questions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ filePath, categoryId: importCategoryId || undefined }),
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeout);
-
-      if (!res.ok && !res.headers.get('content-type')?.includes('text/event-stream')) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Falha na extração');
-      }
-
-      // Read SSE stream
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
-
-        for (const block of lines) {
-          if (!block.startsWith('data: ')) continue;
-          try {
-            const event = JSON.parse(block.slice(6));
-            
-            if (event.type === 'progress') {
-              setExtractionLogs(prev => [...prev, event.message]);
-              if (event.questionsFound) {
-                setQuestionsFound(event.questionsFound);
-              }
-            } else if (event.type === 'done') {
-              setExtractedQuestions(event.questions);
-              setExtractedTopics(event.topics);
-              toast.success(`${event.questions.length} questões extraídas!`);
-            } else if (event.type === 'error') {
-              throw new Error(event.error);
-            }
-          } catch (parseErr: any) {
-            if (parseErr.message && !parseErr.message.includes('Unexpected')) {
-              throw parseErr;
-            }
-          }
-        }
-      }
-    } catch (e: any) {
-      console.error(e);
-      if (e.name === 'AbortError') {
-        toast.error("Timeout: o PDF é muito grande. Tente dividir em partes menores.");
-      } else {
-        toast.error(e.message || "Erro ao extrair questões");
-      }
-    } finally {
-      setExtracting(false);
     }
   }
 
@@ -424,87 +318,7 @@ export default function Admin() {
         </TabsContent>
 
         <TabsContent value="import" className="mt-4">
-          {extractedQuestions ? (
-            <QuestionPreviewTable
-              questions={extractedQuestions}
-              topics={extractedTopics}
-              onImportDone={() => {
-                setExtractedQuestions(null);
-                setPdfFile(null);
-              }}
-            />
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="h-5 w-5" /> Importar Questões via PDF
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Faça upload de um PDF contendo questões de simulado. A IA extrairá automaticamente as questões, alternativas e respostas.
-                </p>
-                <div>
-                  <label className="text-xs text-muted-foreground">Categoria (filtra tópicos na extração)</label>
-                  <Select value={importCategoryId} onValueChange={setImportCategoryId}>
-                    <SelectTrigger><SelectValue placeholder="Todas as categorias" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as categorias</SelectItem>
-                      {categories.map(c => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {(c as any).vendors?.name} › {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={e => setPdfFile(e.target.files?.[0] || null)}
-                    className="hidden"
-                    id="pdf-upload"
-                  />
-                  <label htmlFor="pdf-upload" className="cursor-pointer space-y-2 block">
-                    <Upload className="h-10 w-10 mx-auto text-muted-foreground" />
-                    <p className="font-medium">{pdfFile ? pdfFile.name : 'Clique para selecionar um PDF'}</p>
-                    <p className="text-xs text-muted-foreground">Formato: PDF com questões de múltipla escolha</p>
-                  </label>
-                </div>
-                <Button
-                  onClick={handleExtractQuestions}
-                  disabled={!pdfFile || extracting}
-                  className="w-full"
-                >
-                  {extracting ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Extraindo questões com IA... (pode levar até 3 min)</>
-                  ) : (
-                    <><FileText className="mr-2 h-4 w-4" /> Extrair Questões</>
-                  )}
-                </Button>
-                {extracting && (
-                  <div className="space-y-3">
-                    {questionsFound > 0 && (
-                      <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                        <span>📊 {questionsFound} questões encontradas</span>
-                      </div>
-                    )}
-                    <div className="bg-muted rounded-lg p-3 max-h-48 overflow-y-auto text-xs font-mono space-y-1">
-                      {extractionLogs.map((log, i) => (
-                        <p key={i} className={i === extractionLogs.length - 1 ? "text-primary font-semibold" : "text-muted-foreground"}>
-                          {log}
-                        </p>
-                      ))}
-                      {extractionLogs.length === 0 && (
-                        <p className="text-muted-foreground animate-pulse">Preparando...</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          <QuestionImportWizard />
         </TabsContent>
 
         <TabsContent value="translate" className="mt-4">
@@ -524,7 +338,7 @@ export default function Admin() {
                   <Select value={translateCategoryId} onValueChange={setTranslateCategoryId}>
                     <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
                     <SelectContent>
-                      {categories.map(c => (
+                      {translateCategories.map(c => (
                         <SelectItem key={c.id} value={c.id}>
                           {(c as any).vendors?.name} › {c.name}
                         </SelectItem>
