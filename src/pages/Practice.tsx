@@ -262,6 +262,19 @@ export default function Practice() {
     }
   };
 
+  const availableQuestionCount = useMemo(() => {
+    if (selectedTopics.size === 0) return topics.reduce((sum, t) => sum + t.questionCount, 0);
+    return topics.filter(t => selectedTopics.has(t.id)).reduce((sum, t) => sum + t.questionCount, 0);
+  }, [selectedTopics, topics]);
+
+  // Clamp questionCount when available changes
+  useEffect(() => {
+    const maxAllowed = isSubscribed ? availableQuestionCount : Math.min(availableQuestionCount, 20);
+    if (maxAllowed > 0 && questionCount[0] > maxAllowed) {
+      setQuestionCount([Math.max(5, maxAllowed)]);
+    }
+  }, [availableQuestionCount, isSubscribed]);
+
   const groupedTopics = useMemo(() => {
     const groups: Record<string, TopicInfo[]> = {};
     topics.forEach(t => {
@@ -508,14 +521,14 @@ export default function Practice() {
                         setQuestionCount(val);
                       }
                     }}
-                    max={isSubscribed ? 100 : 20}
+                    max={isSubscribed ? Math.max(5, availableQuestionCount) : Math.min(Math.max(5, availableQuestionCount), 20)}
                     min={5}
                     step={5}
                     className="py-4"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Mín: 5</span>
-                    <span>Máx: {isSubscribed ? 100 : 20}</span>
+                    <span>Máx: {isSubscribed ? availableQuestionCount : Math.min(availableQuestionCount, 20)}</span>
                   </div>
                   {!isSubscribed && (
                     <p className="text-[10px] text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
