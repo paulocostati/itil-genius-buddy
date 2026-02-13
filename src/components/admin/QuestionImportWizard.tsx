@@ -39,6 +39,7 @@ export default function QuestionImportWizard() {
   const [newProduct, setNewProduct] = useState({ title: '', slug: '', description: '', price_cents: '4990', question_count: '40', time_limit_minutes: '60', passing_score: '65' });
 
   // PDF + extraction
+  const [syllabusUrl, setSyllabusUrl] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [extractedQuestions, setExtractedQuestions] = useState<any[] | null>(null);
@@ -149,7 +150,7 @@ export default function QuestionImportWizard() {
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-questions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ filePath, categoryId: selectedCategoryId }),
+        body: JSON.stringify({ filePath, categoryId: selectedCategoryId, syllabusUrl: syllabusUrl.trim() || undefined }),
         signal: controller.signal,
       });
       clearTimeout(timeout);
@@ -426,6 +427,18 @@ export default function QuestionImportWizard() {
             <p className="text-sm text-muted-foreground">
               Faça upload do PDF com as questões. A IA extrairá e mapeará automaticamente para os tópicos de <strong>{categoryName}</strong>.
             </p>
+            <div>
+              <label className="text-xs text-muted-foreground">URL do Syllabus / Study Guide (opcional)</label>
+              <Input
+                value={syllabusUrl}
+                onChange={e => setSyllabusUrl(e.target.value)}
+                placeholder="https://learn.microsoft.com/.../study-guides/ai-900"
+                className="text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Cole o link do guia oficial da certificação. A IA usará para entender tópicos, pesos e contexto do exame.
+              </p>
+            </div>
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <input type="file" accept=".pdf" onChange={e => setPdfFile(e.target.files?.[0] || null)} className="hidden" id="pdf-upload-wizard" />
               <label htmlFor="pdf-upload-wizard" className="cursor-pointer space-y-2 block">
