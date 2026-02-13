@@ -82,19 +82,21 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
 
       for (let i = 0; i < valid.length; i += batchSize) {
         const batch = valid.slice(i, i + batchSize);
-        const rows = batch.map(q => ({
-          statement: q.statement,
-          option_a: q.option_a,
-          option_b: q.option_b,
-          option_c: q.option_c,
-          option_d: q.option_d,
-          option_e: q.option_e || null,
-          correct_option: q.correct_option.replace(/[^a-eA-E]/g, '').charAt(0).toUpperCase() || 'A',
-          explanation: q.explanation || null,
-          question_type: q.question_type || 'standard',
-          topic_id: q.topic_id,
-          source: 'PDF Import',
-        }));
+        const rows = batch
+          .filter(q => q.statement && q.option_a && q.option_b && q.option_c && q.option_d)
+          .map(q => ({
+            statement: q.statement.trim(),
+            option_a: q.option_a.trim(),
+            option_b: q.option_b.trim(),
+            option_c: q.option_c.trim(),
+            option_d: q.option_d.trim(),
+            option_e: q.option_e?.trim() || null,
+            correct_option: q.correct_option.replace(/[^a-eA-E]/g, '').charAt(0).toUpperCase() || 'A',
+            explanation: q.explanation || null,
+            question_type: q.question_type || 'standard',
+            topic_id: q.topic_id,
+            source: 'PDF Import',
+          }));
 
         const { error } = await (supabase.from as any)('questions').insert(rows);
         if (error) throw error;
