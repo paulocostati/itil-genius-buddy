@@ -19,6 +19,7 @@ interface ExamQuestion {
     option_b: string;
     option_c: string;
     option_d: string;
+    option_e: string | null;
     question_type: string;
     topics: {
       name: string;
@@ -100,7 +101,7 @@ export default function Exam() {
       // 3. Fetch Questions
       const { data: qData, error: qError } = await supabase
         .from('exam_questions')
-        .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d, question_type, topics(name))')
+        .select('id, question_id, question_order, selected_option, questions(id, statement, option_a, option_b, option_c, option_d, option_e, question_type, topics(name))')
         .eq('exam_id', examId!)
         .order('question_order');
 
@@ -190,7 +191,10 @@ export default function Exam() {
       for (const q of questions) {
         const selected = answers[q.id] || null;
         const correct = correctMap.get(q.question_id);
-        const isCorrect = selected === correct;
+        // For multi_select, compare sorted characters
+        const isCorrect = selected && correct
+          ? selected.split('').sort().join('') === correct.split('').sort().join('')
+          : selected === correct;
         if (isCorrect) score++;
 
         updates.push(
@@ -241,11 +245,13 @@ export default function Exam() {
   const showTopicHeader = currentTopicName !== prevTopicName;
 
   const answeredCount = Object.keys(answers).length;
-  const options = ['A', 'B', 'C', 'D'].map(key => ({
+  const optionKeys = ['A', 'B', 'C', 'D'];
+  if (current.questions.option_e) optionKeys.push('E');
+  const options = optionKeys.map(key => ({
     key,
     label: key,
     text: (current.questions as any)[`option_${key.toLowerCase()}`]
-  }));
+  })).filter(opt => opt.text);
 
   const minutes = timeLeft !== null ? Math.floor(timeLeft / 60) : 0;
   const seconds = timeLeft !== null ? timeLeft % 60 : 0;
@@ -258,6 +264,9 @@ export default function Exam() {
     list: { label: 'LIST', color: 'bg-accent/15 text-accent' },
     missing_word: { label: 'MW', color: 'bg-warning/15 text-warning' },
     negative: { label: 'NEG', color: 'bg-destructive/15 text-destructive' },
+    hotspot_yesno: { label: 'Y/N', color: 'bg-emerald-500/15 text-emerald-600' },
+    hotspot_complete: { label: 'COMP', color: 'bg-blue-500/15 text-blue-600' },
+    multi_select: { label: 'MULTI', color: 'bg-violet-500/15 text-violet-600' },
   };
   const badge = typeBadge[questionType] || typeBadge.standard;
 
