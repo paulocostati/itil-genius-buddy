@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import QRCode from "qrcode";
 import { generatePixPayload } from "@/lib/pix-payload";
 
-const PIX_KEY = "pix@examtis.shop";
+const PIX_KEY = "ca3e9d60-4d7b-4a97-bf6f-2144be5fa388";
 const MERCHANT_NAME = "EXAMTIS";
 const MERCHANT_CITY = "Sao Paulo";
 
