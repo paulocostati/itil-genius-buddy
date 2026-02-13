@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.grant-free-access]
 verify_jwt = false
+
+[functions.send-access-email]
+verify_jwt = false

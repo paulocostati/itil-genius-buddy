@@ -79,6 +79,15 @@ export default function Admin() {
         .insert({ user_id: order.user_id, product_id: order.product_id, source_order_id: order.id, status: 'ACTIVE', starts_at: new Date().toISOString() });
       if (entError) throw entError;
 
+      // Send access email (fire-and-forget)
+      supabase.functions.invoke('send-access-email', {
+        body: {
+          user_id: order.user_id,
+          product_title: order.products?.title || 'Simulado',
+          type: 'product',
+        },
+      }).catch(err => console.warn('Access email failed:', err));
+
       toast.success(`Pedido ${order.id.slice(0, 8)} aprovado!`);
       loadOrders();
     } catch (e) {
