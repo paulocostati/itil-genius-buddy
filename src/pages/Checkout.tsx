@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2, Copy, Loader2, UploadCloud } from "lucide-react";
+import { CheckCircle2, Copy, Loader2, UploadCloud, Ticket, X } from "lucide-react";
 import { toast } from "sonner";
 import QRCode from "qrcode";
 import { generatePixPayload } from "@/lib/pix-payload";
@@ -28,6 +28,9 @@ export default function Checkout() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const [pixCopyPaste, setPixCopyPaste] = useState<string>("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount_percent: number } | null>(null);
 
   useEffect(() => {
     if (location.state && location.state.orderId) {
@@ -71,6 +74,45 @@ export default function Checkout() {
       .catch(err => console.error('QR generation error:', err));
   }, [orderId, product]);
 
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    try {
+      const { data, error } = await (supabase.from as any)('coupons')
+        .select('*')
+        .eq('code', couponCode.trim().toUpperCase())
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) {
+        toast.error('Cupom inválido ou expirado');
+        return;
+      }
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        toast.error('Cupom expirado');
+        return;
+      }
+      if (data.max_uses !== null && data.used_count >= data.max_uses) {
+        toast.error('Cupom esgotado');
+        return;
+      }
+
+      setAppliedCoupon({ code: data.code, discount_percent: data.discount_percent });
+      toast.success(`Cupom ${data.code} aplicado! ${data.discount_percent}% de desconto`);
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao validar cupom');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const getDiscountedPrice = () => {
+    if (!product) return 0;
+    if (!appliedCoupon) return product.price_cents;
+    return Math.round(product.price_cents * (1 - appliedCoupon.discount_percent / 100));
+  };
+
   const createOrder = async () => {
     if (!user || !product) {
       toast.error("Faça login para continuar.");
@@ -80,11 +122,12 @@ export default function Checkout() {
 
     try {
       setLoading(true);
+      const finalPrice = getDiscountedPrice();
       const { data, error } = await (supabase.from as any)('orders')
         .insert({
           user_id: user.id,
           product_id: product.id,
-          amount_cents: product.price_cents,
+          amount_cents: finalPrice,
           status: 'PENDING',
           customer_email: user.email
         })
@@ -92,6 +135,12 @@ export default function Checkout() {
         .single();
 
       if (error) throw error;
+
+      // Increment coupon used_count
+      if (appliedCoupon) {
+        await (supabase.rpc as any)('increment_coupon_usage', { _code: appliedCoupon.code }).catch(() => {});
+      }
+
       setOrderId(data.id);
       toast.success("Pedido criado! Realize o pagamento.");
     } catch (err) {
@@ -155,8 +204,45 @@ export default function Checkout() {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b">
               <span className="font-medium">{product.title}</span>
-              <span>{formatPrice(product.price_cents)}</span>
+              <span className={appliedCoupon ? 'line-through text-muted-foreground' : ''}>
+                {formatPrice(product.price_cents)}
+              </span>
             </div>
+
+            {appliedCoupon && (
+              <div className="flex justify-between items-center py-2 border-b text-green-600">
+                <span className="flex items-center gap-2">
+                  <Ticket className="h-4 w-4" />
+                  Cupom {appliedCoupon.code} ({appliedCoupon.discount_percent}% OFF)
+                  <button onClick={() => { setAppliedCoupon(null); setCouponCode(''); }} className="text-muted-foreground hover:text-destructive">
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+                <span>-{formatPrice(product.price_cents - getDiscountedPrice())}</span>
+              </div>
+            )}
+
+            {appliedCoupon && (
+              <div className="flex justify-between items-center py-2 border-b font-bold text-lg">
+                <span>Total</span>
+                <span>{formatPrice(getDiscountedPrice())}</span>
+              </div>
+            )}
+
+            {!appliedCoupon && (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Cupom de desconto"
+                  value={couponCode}
+                  onChange={e => setCouponCode(e.target.value)}
+                  className="uppercase"
+                />
+                <Button variant="outline" onClick={applyCoupon} disabled={couponLoading || !couponCode.trim()}>
+                  {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Aplicar'}
+                </Button>
+              </div>
+            )}
+
             <div className="text-sm text-muted-foreground">
               Acesso vitalício ao banco de questões e atualizações.
             </div>
@@ -164,7 +250,7 @@ export default function Checkout() {
           <CardFooter>
             <Button className="w-full" size="lg" onClick={createOrder} disabled={loading}>
               {loading ? <Loader2 className="mr-2 animate-spin" /> : null}
-              Confirmar e Pagar com Pix
+              Confirmar e Pagar com Pix {appliedCoupon ? formatPrice(getDiscountedPrice()) : ''}
             </Button>
           </CardFooter>
         </Card>
