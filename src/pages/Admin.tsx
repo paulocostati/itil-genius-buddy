@@ -15,6 +15,7 @@ import VendorManager from '@/components/admin/VendorManager';
 import CategoryManager from '@/components/admin/CategoryManager';
 import ProductManager from '@/components/admin/ProductManager';
 import TopicManager from '@/components/admin/TopicManager';
+import UserManager from '@/components/admin/UserManager';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface AdminOrder {
@@ -186,6 +187,7 @@ export default function Admin() {
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="topics">Tópicos</TabsTrigger>
+          <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="import">Importar Questões</TabsTrigger>
         </TabsList>
 
@@ -280,6 +282,10 @@ export default function Admin() {
 
         <TabsContent value="topics" className="mt-4">
           <TopicManager />
+        </TabsContent>
+
+        <TabsContent value="users" className="mt-4">
+          <UserManager />
         </TabsContent>
 
         <TabsContent value="import" className="mt-4">
