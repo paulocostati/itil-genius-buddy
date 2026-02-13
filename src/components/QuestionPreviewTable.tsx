@@ -78,7 +78,7 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
         option_b: q.option_b,
         option_c: q.option_c,
         option_d: q.option_d,
-        correct_option: q.correct_option,
+        correct_option: q.correct_option.toUpperCase(),
         explanation: q.explanation || null,
         question_type: q.question_type || 'standard',
         topic_id: q.topic_id,
@@ -154,7 +154,7 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {(['a', 'b', 'c', 'd'] as const).map(letter => (
-                    <div key={letter} className={`flex items-start gap-1 p-2 rounded border ${q.correct_option === letter ? 'bg-green-50 border-green-300' : ''}`}>
+                    <div key={letter} className={`flex items-start gap-1 p-2 rounded border ${q.correct_option.toLowerCase() === letter ? 'bg-green-50 border-green-300' : ''}`}>
                       <span className="font-bold text-xs mt-1 uppercase">{letter})</span>
                       <Input
                         className="h-auto text-xs p-1"
@@ -170,7 +170,7 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
                     <Select value={q.correct_option} onValueChange={v => updateQuestion(idx, 'correct_option', v)}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {['a', 'b', 'c', 'd'].map(l => <SelectItem key={l} value={l}>{l.toUpperCase()}</SelectItem>)}
+                        {['A', 'B', 'C', 'D'].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
