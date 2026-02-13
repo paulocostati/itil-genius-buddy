@@ -40,8 +40,7 @@ const Header = () => {
             <div className="container flex h-20 items-center justify-between px-8">
                 <div className="flex items-center gap-10">
                     <Link to="/" className="relative flex items-center py-2">
-                        <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full scale-150" />
-                        <img src={logoExamtis} alt="EXAMTIS" className="relative h-12" />
+                        <img src={logoExamtis} alt="EXAMTIS" className="relative h-12 drop-shadow-[0_0_12px_hsl(216,100%,50%,0.5)]" />
                     </Link>
                     <nav className="hidden md:flex items-center gap-6">
                         {navLinks.map((link) => (
