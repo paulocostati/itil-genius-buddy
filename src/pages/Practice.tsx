@@ -278,13 +278,15 @@ export default function Practice() {
     return topics.filter(t => selectedTopics.has(t.id)).reduce((sum, t) => sum + t.questionCount, 0);
   }, [selectedTopics, topics]);
 
-  // Clamp questionCount when available changes
+  // Auto-adjust questionCount to match available questions when topics change
   useEffect(() => {
     const maxAllowed = isSubscribed ? availableQuestionCount : Math.min(availableQuestionCount, 20);
-    if (maxAllowed > 0 && questionCount[0] > maxAllowed) {
-      setQuestionCount([Math.max(5, maxAllowed)]);
+    if (availableQuestionCount > 0 && selectedTopics.size > 0) {
+      // Round down to nearest step of 5, minimum 5
+      const rounded = Math.max(5, Math.floor(maxAllowed / 5) * 5);
+      setQuestionCount([rounded]);
     }
-  }, [availableQuestionCount, isSubscribed]);
+  }, [availableQuestionCount, isSubscribed, selectedTopics.size]);
 
   const groupedTopics = useMemo(() => {
     const groups: Record<string, TopicInfo[]> = {};
