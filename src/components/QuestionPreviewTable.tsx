@@ -83,6 +83,16 @@ export default function QuestionPreviewTable({ questions: initialQuestions, topi
     setImportProgress({ current: 0, total: valid.length });
 
     try {
+      // Delete existing questions for the same topics (overwrite mode)
+      const topicIdsToOverwrite = [...new Set(valid.map(q => q.topic_id).filter(Boolean))];
+      if (topicIdsToOverwrite.length > 0) {
+        const { error: deleteError } = await (supabase.from as any)('questions')
+          .delete()
+          .in('topic_id', topicIdsToOverwrite);
+        if (deleteError) throw deleteError;
+        toast.info(`Questões anteriores dos tópicos removidas.`);
+      }
+
       const batchSize = 10;
       let imported = 0;
 
