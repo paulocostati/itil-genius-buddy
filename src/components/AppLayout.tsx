@@ -36,24 +36,25 @@ const Header = () => {
     ];
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-border" style={{ backgroundColor: 'hsl(224, 60%, 4%)' }}>
-            <div className="container flex h-18 items-center justify-between px-6">
-                <div className="flex items-center gap-8">
-                    <Link to="/" className="flex items-center py-2">
-                        <img src={logoExamtis} alt="EXAMTIS" className="h-10" />
+        <header className="sticky top-0 z-50 w-full border-b border-border" style={{ backgroundColor: 'hsl(224, 60%, 3%)' }}>
+            <div className="container flex h-20 items-center justify-between px-8">
+                <div className="flex items-center gap-10">
+                    <Link to="/" className="relative flex items-center py-2">
+                        <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full scale-150" />
+                        <img src={logoExamtis} alt="EXAMTIS" className="relative h-12" />
                     </Link>
                     <nav className="hidden md:flex items-center gap-6">
                         {navLinks.map((link) => (
                             <Link
                                 key={link.path}
                                 to={link.path}
-                                className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground"
+                                className="text-xs font-medium tracking-wide transition-colors hover:text-primary text-muted-foreground"
                             >
                                 {link.name}
                             </Link>
                         ))}
                         {user && (
-                            <Link to="/account" className="text-sm font-medium transition-colors hover:text-primary text-muted-foreground">
+                            <Link to="/account" className="text-xs font-medium tracking-wide transition-colors hover:text-primary text-muted-foreground">
                                 Dashboard
                             </Link>
                         )}
