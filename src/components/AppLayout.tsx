@@ -37,10 +37,10 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border" style={{ backgroundColor: 'hsl(224, 60%, 3%)' }}>
-            <div className="container flex h-20 items-center justify-between px-8 bg-secondary text-secondary-foreground">
-                <div className="gap-10 mx-0 my-0 px-[152px] flex items-center justify-center">
+            <div className="container flex h-20 items-center justify-between px-8 text-secondary-foreground bg-inherit">
+                <div className="gap-10 my-0 px-[208px] pb-0 pl-0 pr-0 mx-[5px] flex-row flex items-center justify-center">
                     <Link to="/" className="relative flex items-center py-2">
-                        <img src={logoExamtis} alt="EXAMTIS" className="relative h-12 drop-shadow-[0_0_12px_hsl(216,100%,50%,0.5)] border-0 rounded-xl shadow-lg object-fill" />
+                        <img src={logoExamtis} alt="EXAMTIS" className="relative h-12 drop-shadow-[0_0_12px_hsl(216,100%,50%,0.5)] border-0 shadow-lg object-fill border-[#f0f0f0] rounded-full" />
                     </Link>
                     <nav className="hidden md:flex items-center gap-6">
                         {navLinks.map((link) =>
