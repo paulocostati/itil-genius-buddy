@@ -33,11 +33,11 @@ const plans = [
 ];
 
 const methodology = [
-  "Simulados ponderados por domínio oficial",
-  "Nível de dificuldade alinhado ao exame real",
-  "Diagnóstico de desempenho por área",
+  "Simulados ponderados pelo peso oficial do exame",
+  "Relatório de desempenho por domínio",
+  "Identificação de lacunas críticas",
   "Ciclos estratégicos de repetição",
-  "Interface limpa e sem distrações",
+  "Ambiente limpo e profissional",
 ];
 
 const faqs = [
@@ -84,21 +84,21 @@ export default function Index() {
           <div className="grid lg:grid-cols-2 gap-20 items-center">
             <div className="space-y-8 max-w-xl">
               <h1 className="text-4xl md:text-[3.4rem] leading-[1.06] font-extrabold tracking-tight">
-                Preparação estratégica para conquistar sua{" "}
-                <span style={{ color: c.accent }}>ITIL 4.</span>
+                Certificação não é tentativa. É{" "}
+                <span style={{ color: c.accent }}>estratégia.</span>
               </h1>
               <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
-                Simulados estruturados com base no peso oficial do exame, focados em performance real de prova.
+                Simulações estruturadas com base no peso oficial do exame ITIL 4 para profissionais que querem aprovação com precisão.
               </p>
               <p className="text-sm" style={{ color: c.textDim }}>
-                Inclui acesso completo às certificações AZ-900 e AI-900.
+                Inclui acesso às certificações AZ-900 e AI-900.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide" style={{ background: c.accent, color: "#fff" }} asChild>
-                  <a href="#plans">Quero acessar a plataforma</a>
+                  <a href="#plans">Acessar preparação estratégica</a>
                 </Button>
                 <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide" style={{ color: c.textMuted }} asChild>
-                  <a href="#methodology">Conhecer a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
+                  <a href="#methodology">Entender a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
                 </Button>
               </div>
             </div>
@@ -106,28 +106,32 @@ export default function Index() {
             {/* Mockup */}
             <div className="hidden lg:block">
               <div className="rounded-2xl p-8 shadow-2xl" style={{ background: c.surface, border: `1px solid ${c.border}`, boxShadow: `0 25px 60px -12px ${c.accent}08` }}>
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 mb-4">
                   <div className="w-2.5 h-2.5 rounded-full bg-[hsl(0,50%,50%)]" />
                   <div className="w-2.5 h-2.5 rounded-full bg-[hsl(40,70%,50%)]" />
                   <div className="w-2.5 h-2.5 rounded-full bg-[hsl(130,45%,45%)]" />
+                  <span className="ml-3 text-[10px] tracking-wider uppercase" style={{ color: c.textDim }}>ITIL 4 Foundation — Dashboard Estratégico</span>
                 </div>
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <div className="h-3 w-32 rounded" style={{ background: c.border }} />
-                    <div className="h-3 w-16 rounded" style={{ background: c.border }} />
-                  </div>
-                  <div className="grid grid-cols-4 gap-3">
-                    {["Sistema de Valor", "Práticas", "Princípios", "Governança"].map((d, i) => (
-                      <div key={d} className="p-3 rounded-lg text-center" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
-                        <div className="text-xl font-bold" style={{ color: c.accent }}>{[78, 85, 62, 91][i]}%</div>
-                        <div className="text-[9px] mt-1" style={{ color: c.textDim }}>{d}</div>
+                <div className="space-y-4">
+                  {[
+                    { domain: "Sistema de Valor", weight: 34, score: 78 },
+                    { domain: "Práticas", weight: 42, score: 85 },
+                    { domain: "Princípios", weight: 14, score: 62 },
+                    { domain: "Governança", weight: 10, score: 91 },
+                  ].map((d) => (
+                    <div key={d.domain} className="p-3 rounded-lg" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium">{d.domain} <span style={{ color: c.textDim }}>({d.weight}%)</span></span>
+                        <span className="text-sm font-bold" style={{ color: d.score >= 80 ? "hsl(150,50%,50%)" : d.score >= 70 ? c.accent : "hsl(35,80%,55%)" }}>{d.score}%</span>
                       </div>
-                    ))}
-                  </div>
-                  <div className="h-28 rounded-lg" style={{ background: c.bg, border: `1px solid ${c.border}` }} />
-                  <div className="flex gap-3">
-                    <div className="flex-1 h-8 rounded" style={{ background: c.accent }} />
-                    <div className="flex-1 h-8 rounded" style={{ background: c.border }} />
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: c.border }}>
+                        <div className="h-full rounded-full transition-all" style={{ width: `${d.score}%`, background: d.score >= 80 ? "hsl(150,50%,50%)" : d.score >= 70 ? c.accent : "hsl(35,80%,55%)" }} />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex gap-3 pt-2">
+                    <div className="flex-1 h-9 rounded-lg flex items-center justify-center text-xs font-semibold" style={{ background: c.accent, color: "#fff" }}>Novo Simulado</div>
+                    <div className="flex-1 h-9 rounded-lg flex items-center justify-center text-xs" style={{ background: c.border, color: c.textMuted }}>Relatório Completo</div>
                   </div>
                 </div>
               </div>
@@ -142,8 +146,26 @@ export default function Index() {
         <div className="container px-4 md:px-6 max-w-3xl mx-auto text-center space-y-6">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Não é um banco de questões.</h2>
           <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
-            A EXAMTIS foi desenvolvida para profissionais que encaram certificação como estratégia.
-            Cada simulado segue a distribuição oficial de peso do exame, permitindo foco onde realmente impacta sua aprovação.
+            A maioria estuda em volume. Poucos estudam com direcionamento.
+          </p>
+          <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
+            A EXAMTIS organiza simulados com base na estrutura oficial do exame, permitindo foco real nas áreas com maior impacto na sua aprovação.
+          </p>
+        </div>
+      </section>
+
+      {/* Problema Real */}
+      <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
+        <div className="container px-4 md:px-6 max-w-2xl mx-auto text-center space-y-6">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">O que normalmente acontece</h2>
+          <div className="space-y-3 text-lg" style={{ color: c.textMuted }}>
+            <p>Você resolve centenas de questões.</p>
+            <p>Assiste aulas.</p>
+            <p>Revisa PDFs.</p>
+            <p className="pt-2">Mas não sabe onde realmente está perdendo pontos.</p>
+          </div>
+          <p className="text-xl font-semibold pt-4" style={{ color: c.accent }}>
+            "Sem diagnóstico, não existe estratégia."
           </p>
         </div>
       </section>
@@ -151,7 +173,7 @@ export default function Index() {
       {/* Methodology */}
       <section id="methodology" className="py-28 scroll-mt-20" style={{ borderTop: `1px solid ${c.border}` }}>
         <div className="container px-4 md:px-6 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14">Estruturado para performance.</h2>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14">Como a EXAMTIS funciona</h2>
           <div className="space-y-0">
             {methodology.map((item, i) => (
               <div key={i} className="flex items-center gap-6 py-5" style={{ borderBottom: `1px solid ${c.border}` }}>
@@ -166,19 +188,11 @@ export default function Index() {
       {/* Storytelling */}
       <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
         <div className="container px-4 md:px-6 max-w-2xl mx-auto text-center space-y-4">
-          {[
-            "A maioria estuda em volume.",
-            "Poucos estudam com estratégia.",
-            "",
-            "Certificação não é quantidade.",
-            "É precisão.",
-          ].filter(Boolean).map((line, i) => (
-            <p key={i} className={`text-xl md:text-2xl leading-relaxed ${i >= 3 ? "font-semibold" : "font-light"}`} style={{ color: i < 3 ? c.textMuted : c.text }}>
-              {line}
-            </p>
-          ))}
-          <p className="text-lg pt-4 font-medium" style={{ color: c.accent }}>
-            A EXAMTIS foi construída para precisão.
+          <p className="text-xl md:text-2xl leading-relaxed font-light" style={{ color: c.textMuted }}>
+            Você não precisa estudar mais.
+          </p>
+          <p className="text-xl md:text-2xl leading-relaxed font-semibold">
+            Precisa estudar com precisão.
           </p>
         </div>
       </section>
