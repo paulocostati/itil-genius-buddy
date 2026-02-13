@@ -366,11 +366,16 @@ export default function Admin() {
                   className="w-full"
                 >
                   {extracting ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Extraindo questões...</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Extraindo questões com IA... (pode levar até 3 min)</>
                   ) : (
                     <><FileText className="mr-2 h-4 w-4" /> Extrair Questões</>
                   )}
                 </Button>
+                {extracting && (
+                  <p className="text-xs text-muted-foreground text-center animate-pulse">
+                    A IA está analisando o PDF e extraindo as questões. Não feche esta página.
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
