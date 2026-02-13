@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, Globe } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,11 +33,11 @@ const plans = [
 ];
 
 const methodology = [
-  "Domain-weighted simulations",
-  "Real exam difficulty level",
-  "Domain performance diagnostics",
-  "Strategic repetition cycles",
-  "Clean, distraction-free interface",
+  "Simulados ponderados por domínio oficial",
+  "Nível de dificuldade alinhado ao exame real",
+  "Diagnóstico de desempenho por área",
+  "Ciclos estratégicos de repetição",
+  "Interface limpa e sem distrações",
 ];
 
 const faqs = [
@@ -52,26 +52,30 @@ const faqs = [
 const fmt = (cents: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
+// Color tokens
+const c = {
+  bg: "hsl(222,30%,5%)",
+  surface: "hsl(222,25%,9%)",
+  border: "hsl(220,20%,14%)",
+  text: "hsl(210,20%,95%)",
+  textMuted: "hsl(215,15%,52%)",
+  textDim: "hsl(215,15%,38%)",
+  accent: "hsl(215,70%,55%)",
+};
+
 export default function Index() {
   const { user } = useAuth();
-
-  const c = {
-    bg: "hsl(222,30%,5%)",
-    surface: "hsl(222,25%,9%)",
-    border: "hsl(220,20%,14%)",
-    borderHover: "hsl(215,70%,55%)",
-    text: "hsl(210,20%,95%)",
-    textMuted: "hsl(215,15%,52%)",
-    textDim: "hsl(215,15%,38%)",
-    accent: "hsl(215,70%,55%)",
-    accentHover: "hsl(215,70%,48%)",
-  };
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: c.bg, color: c.text }}>
       {/* Tagline bar */}
-      <div className="text-center py-2 text-xs tracking-[0.25em] uppercase" style={{ color: c.textDim, borderBottom: `1px solid ${c.border}` }}>
-        Strategic Certification Preparation Platform
+      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 container" style={{ borderBottom: `1px solid ${c.border}` }}>
+        <span className="text-[10px] tracking-[0.25em] uppercase" style={{ color: c.textDim }}>
+          Plataforma Estratégica de Simulação para Certificações
+        </span>
+        <button className="flex items-center gap-1.5 text-[10px] tracking-wider uppercase opacity-40 hover:opacity-70 transition-opacity" style={{ color: c.textDim }}>
+          <Globe className="h-3 w-3" /> EN
+        </button>
       </div>
 
       {/* Hero */}
@@ -80,43 +84,28 @@ export default function Index() {
           <div className="grid lg:grid-cols-2 gap-20 items-center">
             <div className="space-y-8 max-w-xl">
               <h1 className="text-4xl md:text-[3.4rem] leading-[1.06] font-extrabold tracking-tight">
-                Strategic preparation for{" "}
-                <span style={{ color: c.accent }}>ITIL 4</span>{" "}
-                certification.
+                Preparação estratégica para conquistar sua{" "}
+                <span style={{ color: c.accent }}>ITIL 4.</span>
               </h1>
               <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
-                A performance-focused simulation platform structured around the official exam blueprint.
+                Simulados estruturados com base no peso oficial do exame, focados em performance real de prova.
               </p>
               <p className="text-sm" style={{ color: c.textDim }}>
-                Also includes AZ-900 and AI-900 access.
+                Inclui acesso completo às certificações AZ-900 e AI-900.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button
-                  size="lg"
-                  className="h-13 px-10 text-sm font-semibold tracking-wide"
-                  style={{ background: c.accent, color: "#fff" }}
-                  asChild
-                >
-                  <a href="#plans">Access the platform</a>
+                <Button size="lg" className="h-13 px-10 text-sm font-semibold tracking-wide" style={{ background: c.accent, color: "#fff" }} asChild>
+                  <a href="#plans">Quero acessar a plataforma</a>
                 </Button>
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  className="h-13 px-10 text-sm tracking-wide"
-                  style={{ color: c.textMuted }}
-                  asChild
-                >
-                  <a href="#methodology">Explore methodology <ArrowRight className="ml-2 h-4 w-4" /></a>
+                <Button size="lg" variant="ghost" className="h-13 px-10 text-sm tracking-wide" style={{ color: c.textMuted }} asChild>
+                  <a href="#methodology">Conhecer a metodologia <ArrowRight className="ml-2 h-4 w-4" /></a>
                 </Button>
               </div>
             </div>
 
             {/* Mockup */}
             <div className="hidden lg:block">
-              <div
-                className="rounded-2xl p-8 shadow-2xl"
-                style={{ background: c.surface, border: `1px solid ${c.border}`, boxShadow: `0 25px 60px -12px ${c.accent}08` }}
-              >
+              <div className="rounded-2xl p-8 shadow-2xl" style={{ background: c.surface, border: `1px solid ${c.border}`, boxShadow: `0 25px 60px -12px ${c.accent}08` }}>
                 <div className="flex items-center gap-2 mb-6">
                   <div className="w-2.5 h-2.5 rounded-full bg-[hsl(0,50%,50%)]" />
                   <div className="w-2.5 h-2.5 rounded-full bg-[hsl(40,70%,50%)]" />
@@ -128,11 +117,9 @@ export default function Index() {
                     <div className="h-3 w-16 rounded" style={{ background: c.border }} />
                   </div>
                   <div className="grid grid-cols-4 gap-3">
-                    {["Service Value System", "Practices", "Guiding Principles", "Governance"].map((d) => (
+                    {["Sistema de Valor", "Práticas", "Princípios", "Governança"].map((d, i) => (
                       <div key={d} className="p-3 rounded-lg text-center" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
-                        <div className="text-xl font-bold" style={{ color: c.accent }}>
-                          {Math.floor(60 + Math.random() * 35)}%
-                        </div>
+                        <div className="text-xl font-bold" style={{ color: c.accent }}>{[78, 85, 62, 91][i]}%</div>
                         <div className="text-[9px] mt-1" style={{ color: c.textDim }}>{d}</div>
                       </div>
                     ))}
@@ -153,13 +140,10 @@ export default function Index() {
       {/* Positioning */}
       <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
         <div className="container px-4 md:px-6 max-w-3xl mx-auto text-center space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            This is not a question bank.
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Não é um banco de questões.</h2>
           <p className="text-lg leading-relaxed" style={{ color: c.textMuted }}>
-            EXAMTIS is built for professionals who approach certification with precision.
-            Every simulation follows the official domain weight distribution to ensure
-            strategic preparation where it truly matters.
+            A EXAMTIS foi desenvolvida para profissionais que encaram certificação como estratégia.
+            Cada simulado segue a distribuição oficial de peso do exame, permitindo foco onde realmente impacta sua aprovação.
           </p>
         </div>
       </section>
@@ -167,19 +151,11 @@ export default function Index() {
       {/* Methodology */}
       <section id="methodology" className="py-28 scroll-mt-20" style={{ borderTop: `1px solid ${c.border}` }}>
         <div className="container px-4 md:px-6 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14">
-            Structured for performance.
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-center mb-14">Estruturado para performance.</h2>
           <div className="space-y-0">
             {methodology.map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-6 py-5"
-                style={{ borderBottom: `1px solid ${c.border}` }}
-              >
-                <span className="text-sm font-light tabular-nums w-8" style={{ color: c.textDim }}>
-                  0{i + 1}
-                </span>
+              <div key={i} className="flex items-center gap-6 py-5" style={{ borderBottom: `1px solid ${c.border}` }}>
+                <span className="text-sm font-light tabular-nums w-8" style={{ color: c.textDim }}>0{i + 1}</span>
                 <span className="text-lg font-medium">{item}</span>
               </div>
             ))}
@@ -191,36 +167,33 @@ export default function Index() {
       <section className="py-28" style={{ borderTop: `1px solid ${c.border}` }}>
         <div className="container px-4 md:px-6 max-w-2xl mx-auto text-center space-y-4">
           {[
-            "Most candidates over-study.",
-            "Few study strategically.",
-            "Certification is not about volume.",
-            "It is about precision.",
-          ].map((line, i) => (
-            <p key={i} className={`text-xl md:text-2xl font-light leading-relaxed ${i === 3 ? "font-semibold" : ""}`} style={{ color: i < 3 ? c.textMuted : c.text }}>
+            "A maioria estuda em volume.",
+            "Poucos estudam com estratégia.",
+            "",
+            "Certificação não é quantidade.",
+            "É precisão.",
+          ].filter(Boolean).map((line, i) => (
+            <p key={i} className={`text-xl md:text-2xl leading-relaxed ${i >= 3 ? "font-semibold" : "font-light"}`} style={{ color: i < 3 ? c.textMuted : c.text }}>
               {line}
             </p>
           ))}
-          <p className="text-lg pt-4" style={{ color: c.accent }}>
-            EXAMTIS was built for precision.
+          <p className="text-lg pt-4 font-medium" style={{ color: c.accent }}>
+            A EXAMTIS foi construída para precisão.
           </p>
         </div>
       </section>
 
-      {/* Price Anchoring + Plans */}
+      {/* Plans */}
       <section id="plans" className="py-28 scroll-mt-20" style={{ borderTop: `1px solid ${c.border}` }}>
         <div className="container px-4 md:px-6">
-          {/* Anchoring */}
           <div className="text-center mb-6 max-w-xl mx-auto">
-            <p className="text-xl font-semibold tracking-tight">
-              Certification failure costs more than preparation.
-            </p>
+            <p className="text-xl font-semibold tracking-tight">Reprovar custa mais do que se preparar estrategicamente.</p>
             <p className="text-sm mt-2" style={{ color: c.textDim }}>
-              Exam retake fees, time lost, and opportunity cost often exceed R$ 800.
+              Taxa de reaplicação, tempo perdido e impacto profissional podem ultrapassar R$ 800.
             </p>
           </div>
-
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Choose your access level</h2>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Escolha seu nível de acesso</h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-5 max-w-4xl mx-auto">
@@ -229,28 +202,21 @@ export default function Index() {
                 key={plan.tier}
                 className="relative flex flex-col rounded-2xl overflow-hidden"
                 style={{
-                  background: plan.popular
-                    ? `linear-gradient(180deg, ${c.accent}18 0%, ${c.surface} 40%)`
-                    : c.surface,
+                  background: plan.popular ? `linear-gradient(180deg, ${c.accent}18 0%, ${c.surface} 40%)` : c.surface,
                   border: `1px solid ${plan.popular ? c.accent + "40" : c.border}`,
                   boxShadow: plan.popular ? `0 0 40px ${c.accent}08` : "none",
                 }}
               >
                 {plan.popular && (
                   <div className="text-center pt-3">
-                    <span
-                      className="text-[10px] font-semibold tracking-[0.2em] uppercase px-4 py-1 rounded-full"
-                      style={{ background: c.accent, color: "#fff" }}
-                    >
-                      Most Popular
+                    <span className="text-[10px] font-semibold tracking-[0.2em] uppercase px-4 py-1 rounded-full" style={{ background: c.accent, color: "#fff" }}>
+                      Mais Popular
                     </span>
                   </div>
                 )}
                 <div className="p-8 flex flex-col h-full">
                   <div className="text-center mb-6">
-                    <p className="text-xs font-semibold tracking-[0.2em] uppercase mb-1" style={{ color: c.textDim }}>
-                      {plan.tier}
-                    </p>
+                    <p className="text-xs font-semibold tracking-[0.2em] uppercase mb-1" style={{ color: c.textDim }}>{plan.tier}</p>
                     <p className="text-sm mb-4" style={{ color: c.textMuted }}>{plan.days} dias</p>
                     <span className="text-4xl font-bold">{fmt(plan.price)}</span>
                   </div>
@@ -281,24 +247,18 @@ export default function Index() {
               </div>
             ))}
           </div>
+          <p className="text-center text-sm mt-8" style={{ color: c.textDim }}>
+            Compra única. Ativação sob demanda. Sem renovação automática.
+          </p>
         </div>
       </section>
 
       {/* Guarantee */}
       <section className="py-20" style={{ borderTop: `1px solid ${c.border}` }}>
         <div className="container px-4 md:px-6 text-center max-w-2xl mx-auto space-y-3">
-          <p className="text-lg font-semibold">7-day satisfaction guarantee.</p>
+          <p className="text-lg font-semibold">Garantia de satisfação de 7 dias.</p>
           <p className="text-sm" style={{ color: c.textMuted }}>
-            If the platform does not increase your confidence, we refund 100%. No questions asked.
-          </p>
-        </div>
-      </section>
-
-      {/* Trust */}
-      <section className="py-16" style={{ borderTop: `1px solid ${c.border}` }}>
-        <div className="container px-4 md:px-6 text-center max-w-2xl mx-auto">
-          <p className="text-sm" style={{ color: c.textDim }}>
-            Compra única. Ativação sob demanda. Sem assinatura recorrente. Sem cobranças automáticas.
+            Se a plataforma não elevar sua confiança, devolvemos 100% do valor. Sem perguntas.
           </p>
         </div>
       </section>
@@ -322,16 +282,8 @@ export default function Index() {
               { name: "Azure", sub: "AZ-900 & AI-900" },
               { name: "Scrum", sub: "PSM I & PSPO I" },
             ].map((cat) => (
-              <Link
-                key={cat.name}
-                to={`/catalog?search=${cat.name}`}
-                className="group flex flex-col p-5 rounded-2xl transition-all"
-                style={{ background: c.surface, border: `1px solid ${c.border}` }}
-              >
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 text-sm font-bold group-hover:scale-110 transition-transform"
-                  style={{ background: `${c.accent}15`, color: c.accent }}
-                >
+              <Link key={cat.name} to={`/catalog?search=${cat.name}`} className="group flex flex-col p-5 rounded-2xl transition-all" style={{ background: c.surface, border: `1px solid ${c.border}` }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 text-sm font-bold group-hover:scale-110 transition-transform" style={{ background: `${c.accent}15`, color: c.accent }}>
                   {cat.name[0]}
                 </div>
                 <h3 className="font-semibold text-sm">{cat.name}</h3>
@@ -349,9 +301,7 @@ export default function Index() {
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, i) => (
               <AccordionItem key={i} value={`faq-${i}`} style={{ borderColor: c.border }}>
-                <AccordionTrigger className="text-left text-sm hover:no-underline" style={{ color: c.text }}>
-                  {faq.q}
-                </AccordionTrigger>
+                <AccordionTrigger className="text-left text-sm hover:no-underline">{faq.q}</AccordionTrigger>
                 <AccordionContent style={{ color: c.textMuted }}>{faq.a}</AccordionContent>
               </AccordionItem>
             ))}
@@ -364,11 +314,14 @@ export default function Index() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-xs font-semibold tracking-[0.2em]">EXAMTIS</p>
-            <div className="flex gap-6 text-xs" style={{ color: c.textDim }}>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="mailto:contato@examtis.com" className="hover:text-white transition-colors">Contact</a>
+            <div className="flex items-center gap-6 text-xs" style={{ color: c.textDim }}>
+              <a href="#" className="hover:text-white transition-colors">Termos</a>
+              <a href="#" className="hover:text-white transition-colors">Privacidade</a>
+              <a href="mailto:contato@examtis.com" className="hover:text-white transition-colors">Contato</a>
               <Link to="/auth?mode=login" className="hover:text-white transition-colors">Login</Link>
+              <button className="flex items-center gap-1 opacity-50 hover:opacity-80 transition-opacity">
+                <Globe className="h-3 w-3" /> PT-BR
+              </button>
             </div>
           </div>
         </div>
