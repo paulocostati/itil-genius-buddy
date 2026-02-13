@@ -36,11 +36,11 @@ const Header = () => {
     ];
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
-            <div className="container flex h-16 items-center justify-between">
+        <header className="sticky top-0 z-50 w-full border-b border-border" style={{ backgroundColor: 'hsl(224, 60%, 4%)' }}>
+            <div className="container flex h-18 items-center justify-between px-6">
                 <div className="flex items-center gap-8">
-                    <Link to="/" className="flex items-center gap-2">
-                        <img src={logoExamtis} alt="EXAMTIS" className="h-8" />
+                    <Link to="/" className="flex items-center py-2">
+                        <img src={logoExamtis} alt="EXAMTIS" className="h-10" />
                     </Link>
                     <nav className="hidden md:flex items-center gap-6">
                         {navLinks.map((link) => (
