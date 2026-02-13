@@ -45,6 +45,12 @@ export default function Admin() {
   const [importCategoryId, setImportCategoryId] = useState<string>('');
   const [categories, setCategories] = useState<{ id: string; name: string; vendors?: { name: string } }[]>([]);
 
+  // Translation state
+  const [translateCategoryId, setTranslateCategoryId] = useState<string>('');
+  const [translateLang, setTranslateLang] = useState<string>('pt-BR');
+  const [translating, setTranslating] = useState(false);
+  const [translateProgress, setTranslateProgress] = useState({ current: 0, total: 0 });
+
   const loadOrders = useCallback(async () => {
     setLoading(true);
     const { data, error } = await (supabase.from as any)('orders')
@@ -161,6 +167,73 @@ export default function Admin() {
     }
   }
 
+  async function handleTranslate() {
+    if (!translateCategoryId) {
+      toast.error("Selecione uma categoria");
+      return;
+    }
+    setTranslating(true);
+    setTranslateProgress({ current: 0, total: 0 });
+
+    try {
+      // Get topics for the category
+      const { data: catTopics } = await (supabase.from as any)('topics')
+        .select('id').eq('category_id', translateCategoryId);
+      
+      if (!catTopics || catTopics.length === 0) {
+        toast.error("Nenhum tópico encontrado para esta categoria");
+        setTranslating(false);
+        return;
+      }
+
+      const topicIds = catTopics.map((t: any) => t.id);
+      const { data: questions } = await (supabase.from as any)('questions')
+        .select('id').in('topic_id', topicIds);
+
+      if (!questions || questions.length === 0) {
+        toast.error("Nenhuma questão encontrada");
+        setTranslating(false);
+        return;
+      }
+
+      const allIds = questions.map((q: any) => q.id);
+      setTranslateProgress({ current: 0, total: allIds.length });
+
+      // Process in batches of 20
+      const batchSize = 20;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      for (let i = 0; i < allIds.length; i += batchSize) {
+        const batch = allIds.slice(i, i + batchSize);
+        
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-questions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ questionIds: batch, targetLang: translateLang }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Erro na tradução');
+        }
+
+        setTranslateProgress({ current: Math.min(i + batchSize, allIds.length), total: allIds.length });
+      }
+
+      toast.success(`${allIds.length} questões traduzidas para ${translateLang === 'pt-BR' ? 'Português' : 'Inglês'}!`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Erro ao traduzir");
+    } finally {
+      setTranslating(false);
+    }
+  }
+
+
   if (loading) return <div className="p-20 text-center">Carregando painel...</div>;
 
   const pendingOrders = orders.filter(o => o.status === 'PAID_REVIEW' || o.status === 'PENDING');
@@ -208,6 +281,7 @@ export default function Admin() {
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="coupons">Cupons</TabsTrigger>
           <TabsTrigger value="import">Importar Questões</TabsTrigger>
+          <TabsTrigger value="translate">Traduzir</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="mt-4">
@@ -379,6 +453,75 @@ export default function Admin() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="translate" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                🌐 Traduzir Questões
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Traduza todas as questões de uma categoria entre Inglês e Português usando IA.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground">Categoria</label>
+                  <Select value={translateCategoryId} onValueChange={setTranslateCategoryId}>
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {categories.map(c => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {(c as any).vendors?.name} › {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Idioma destino</label>
+                  <Select value={translateLang} onValueChange={setTranslateLang}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pt-BR">🇧🇷 Português</SelectItem>
+                      <SelectItem value="en">🇺🇸 Inglês</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {translating && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-300" 
+                        style={{ width: `${translateProgress.total > 0 ? (translateProgress.current / translateProgress.total) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                      {translateProgress.current} / {translateProgress.total}
+                    </span>
+                  </div>
+                  <p className="text-xs text-primary font-medium animate-pulse">
+                    Traduzindo questão {translateProgress.current} de {translateProgress.total}...
+                  </p>
+                </div>
+              )}
+              <Button
+                onClick={handleTranslate}
+                disabled={!translateCategoryId || translating}
+                className="w-full"
+              >
+                {translating ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Traduzindo...</>
+                ) : (
+                  <>Traduzir Questões</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
